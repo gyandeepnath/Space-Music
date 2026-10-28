@@ -291,15 +291,17 @@ const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
 export function apod(nasaKey) {
   const day = isoDay(Date.now());
   return cached(`apod:${day}`, 6 * 3600e3, async () => {
+    // Ask the library at the same time, so a slow APOD API doesn't hold up the picture.
+    const library = deepSky();
     let error;
     try {
       const url = `https://api.nasa.gov/planetary/apod?api_key=${nasaKey}&thumbs=true&start_date=${isoDay(Date.now() - 9 * 86400e3)}`;
-      const recent = (await getJSON(url)).map(apodItem).filter(Boolean).reverse();
+      const recent = (await getJSON(url, { timeout: 6000 })).map(apodItem).filter(Boolean).reverse();
       if (recent.length >= 3) return { today: recent[0].date >= isoDay(Date.now() - 2 * 86400e3) ? recent[0] : null, items: recent };
     } catch (e) {
       error = e;
     }
-    const sky = await deepSky();
+    const sky = await library;
     if (!sky.length) throw error || new Error('no deep-sky images');
     return { today: null, items: sky };
   });

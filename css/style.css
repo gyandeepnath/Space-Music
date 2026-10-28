@@ -519,6 +519,13 @@ body.playing .live i {
   opacity: 1;
 }
 
+/* Pictures shown whole leave a band at the bottom for the caption and subtitles. */
+#view-slides[data-fit='contain'] .slide {
+  inset: 12px 12px 64px;
+  width: calc(100% - 24px);
+  height: calc(100% - 76px);
+}
+
 #view-slides[data-fit='cover'] .slide {
   object-fit: cover;
 }
