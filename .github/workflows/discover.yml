@@ -7,6 +7,7 @@ on:
   push:
     paths:
       - tools/discover-music.mjs
+      - tools/probe.mjs
       - .github/workflows/discover.yml
 
 permissions:
@@ -25,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node tools/discover-music.mjs
+      - run: node tools/discover-music.mjs && node tools/probe.mjs
       - name: Commit reports
         run: |
           git config user.name "github-actions[bot]"
