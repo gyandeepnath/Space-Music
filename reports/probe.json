@@ -1,0 +1,146 @@
+[
+ {
+  "url": "https://services.swpc.noaa.gov/products/solar-wind/plasma-2-hour.json",
+  "status": 404,
+  "type": "text/html; charset=iso-8859-1",
+  "cors": null,
+  "length": "196",
+  "sample": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n</body></html>\n"
+ },
+ {
+  "url": "https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json",
+  "status": 404,
+  "type": "text/html; charset=iso-8859-1",
+  "cors": null,
+  "length": "196",
+  "sample": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n</body></html>\n"
+ },
+ {
+  "url": "https://services.swpc.noaa.gov/products/solar-wind/plasma-1-day.json",
+  "status": 404,
+  "type": "text/html; charset=iso-8859-1",
+  "cors": null,
+  "length": "196",
+  "sample": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n</body></html>\n"
+ },
+ {
+  "url": "https://services.swpc.noaa.gov/products/summary/solar-wind-speed.json",
+  "status": 200,
+  "type": "application/json",
+  "cors": "*",
+  "length": "59",
+  "sample": "[{\"proton_speed\": 414, \"time_tag\": \"2026-10-28T19:41:00Z\"}]"
+ },
+ {
+  "url": "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json",
+  "status": 200,
+  "type": "application/json",
+  "cors": "*",
+  "length": "2364079",
+  "sample": "[{\"time_tag\": \"2026-10-28T19:45:00\", \"active\": true, \"source\": \"SOLAR1\", \"proton_speed\": 409.5, \"proton_temperature\": 122127, \"proton_density\": 5.72, \"proton_vx_gse\": -402.2, \"proton_vy_gse\": 75.4, \"proton_vz_gse\": 15.8, \"proton_vx_gsm\": -402.2, \"proton_vy_gsm\": 77.0, \"proton_vz_gsm\": -1.2, \"proton_sample_size\": 1, \"alpha_speed\": null, \"alpha_temperature\": null, \"alpha_density\": null, \"alpha_vx_gse\": null, \"alpha_vy_gse\": null, \"alpha_vz_gse\": null, \"alpha_vx_gsm\": null, \"alpha_vy_gsm\": null, \"alpha_vz_gsm\": null, \"alpha_sample_size\": null, \"max_convergence_flag\": 0, \"max_data_flag\": 0, \"max_error_count_flag\": 0, \"max_processing_flag\": 0, \"max_range_flag\": 0, \"max_sample_count_flag\": 0, \"max_telemetry_flag\": 0, \"overall_quality\": 0}, {\"time_tag\": \"2026-10-28T19:44:00\", \"active\": true, \"source\": \"SOLAR1\", \"proton_speed\": 397.7, \"proton_temperature\": 114866, \"proton_density\": 5.92, \"proton_vx_gse\": -389.3, \"proton_vy_gse\": 80.8, \"proton_vz_gse\": 8.7, \"proton_vx_gsm\": -389.3, \"proton_vy_gsm\": 80.7, \"proton_vz_gsm\": -9.3, \"proton_sample_size\": 1, \"alpha_speed\": null, \"alpha_temperature\": null, \"alpha_density\": null, \"alpha_vx_gse\": null, \"alpha_vy_gse\": null, \"alpha_vz_gse\": null, \"alpha_vx_gsm\": null, \"alpha_vy_gsm\": null, \"alpha_vz_gsm\": null, \"alpha_sample_size\": null, \"max_convergence_flag\": 0, \"max_data_flag\": 0, \"max_error_count_flag\": 0, \"max_processing_flag\": 0, \"max_range_flag\": 0, \"max_sample_count_flag\": 0, \"max_telemetry_flag\": 0, \"overall_quality\": 0}, {\"time_tag\": \""
+ },
+ {
+  "url": "https://services.swpc.noaa.gov/products/solar-wind/",
+  "status": 404,
+  "type": "text/html; charset=iso-8859-1",
+  "cors": null,
+  "length": "196",
+  "sample": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n</body></html>\n"
+ },
+ {
+  "url": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&thumbs=true&start_date=2026-10-19",
+  "status": 200,
+  "type": "application/json",
+  "cors": "https://example.com",
+  "length": "4132",
+  "sample": "[{\"date\":\"2026-10-19\",\"explanation\":\"To view this video please enable JavaScript, and consider upgrading to a web browser that \\t\\t\\t\\t\\tsupports HTML5 vide\",\"hdurl\":\"https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png\",\"media_type\":\"image\",\"service_version\":\"v1\",\"title\":\"NASA Science\",\"url\":\"https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png\"},{\"date\":\"2026-10-20\",\"explanation\":\"To view this video please enable JavaScript, and consider upgrading to a web browser that \\t\\t\\t\\t\\tsupports HTML5 vide\",\"hdurl\":\"https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png\",\"media_type\":\"image\",\"service_version\":\"v1\",\"title\":\"NASA Science\",\"url\":\"https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png\"},{\"date\":\"2026-10-21\",\"explanation\":\"To view this video please enable JavaScript, and consider upgrading to a web browser that \\t\\t\\t\\t\\tsupports HTML5 vide\",\"hdurl\":\"https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png\",\"media_type\":\"image\",\"service_version\":\"v1\",\"title\":\"NASA Science\",\"url\":\"https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png\"},{\"date\":\"2026-10-22\",\"explanation\":\"To view this video please enable JavaScript, and consider upgrading to a web browser that \\t\\t\\t\\t\\tsupports HTML5 vide\",\"hdurl\":\"https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png\",\"media_t"
+ },
+ {
+  "url": "https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&num=1&page=0&order=sol+desc&extended=sample_type::full,",
+  "status": 200,
+  "type": "application/json;charset=UTF-8",
+  "cors": "*",
+  "length": "2383",
+  "sample": "{\"images\":[{\"extended\":{\"mastAz\":\"89.6555\",\"mastEl\":\"-26.1042\",\"sclk\":\"846456751.613\",\"scaleFactor\":\"2\",\"xyz\":\"(0.0,0.0,0.0)\",\"subframeRect\":\"(1265,945,2592,1952)\",\"dimension\":\"(1296,976)\"},\"sol\":2022,\"attitude\":\"(0.682294,0.00329392,0.063483,0.728309)\",\"image_files\":{\"medium\":\"https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02022/ids/edr/browse/ncam/NLG_2022_0846456749_879ECM_N0930000SCAM04022_00_1LLJ01_800.jpg\",\"small\":\"https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02022/ids/edr/browse/ncam/NLG_2022_0846456749_879ECM_N0930000SCAM04022_00_1LLJ01_320.jpg\",\"full_res\":\"https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02022/ids/edr/browse/ncam/NLG_2022_0846456749_879ECM_N0930000SCAM04022_00_1LLJ01.png\",\"large\":\"https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/02022/ids/edr/browse/ncam/NLG_2022_0846456749_879ECM_N0930000SCAM04022_00_1LLJ01_1200.jpg\"},\"imageid\":\"NLG_2022_0846456749_879ECM_N0930000SCAM04022_00_1LLJ\",\"camera\":{\"filter_name\":\"UNK\",\"camera_vector\":\"(0.005060121222690426,0.8978314759586513,0.4403101588098118)\",\"camera_model_component_list\":\"(1.01871,0.701373,-1.91327);(-0.00652794,0.894521,0.446995);(-1483.55,587.723,290.191);(-6.12616,-214.663,1546.0);(-0.00794437,0.894467,0.44708);(1.736e-06,0.0501396,-0.0171254);(-8e-09,1e-08,-2.9e-08);2.0;0.0\",\"camera_position\":\"(1.01871,0.701373,-1.91327)\",\"instrument\":\"NAVCAM_LEFT\",\"camera_model_type\":\"CAHVORE\"},\"caption\":\"NASA's Mars Perseverance rover acquired this image u"
+ },
+ {
+  "url": "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=1",
+  "status": 200,
+  "type": "application/json",
+  "cors": "*",
+  "length": null,
+  "sample": "{\"count\":477,\"next\":\"https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=1&offset=1\",\"previous\":null,\"results\":[{\"id\":\"20d5676e-111b-40e3-8923-b218c3665ca2\",\"url\":\"https://ll.thespacedevs.com/2.3.0/launches/20d5676e-111b-40e3-8923-b218c3665ca2/\",\"name\":\"GSLV Mk II | IRNSS-1L (NVS-03)\",\"response_mode\":\"normal\",\"slug\":\"gslv-mk-ii-irnss-1l-nvs-03\",\"launch_designator\":null,\"status\":{\"id\":1,\"name\":\"Go for Launch\",\"abbrev\":\"Go\",\"description\":\"Current T-0 confirmed by official or reliable sources.\"},\"last_updated\":\"2026-10-28T08:54:47Z\",\"net\":\"2026-10-30T18:21:00Z\",\"net_precision\":{\"id\":1,\"name\":\"Minute\",\"abbrev\":\"MIN\",\"description\":\"The T-0 is accurate to the minute.\"},\"window_end\":\"2026-10-30T21:00:00Z\",\"window_start\":\"2026-10-30T17:00:00Z\",\"image\":{\"id\":1469,\"name\":\"[AUTO] GSLV Mk II | IRNSS-1J (NVS-01) - image\",\"image_url\":\"https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/gslv2520mk252_image_20240101090337.jpg\",\"thumbnail_url\":\"https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/255bauto255d__image_thumbnail_20240305192851.jpeg\",\"credit\":null,\"license\":{\"id\":1,\"name\":\"Unknown\",\"priority\":9,\"link\":null},\"single_use\":true,\"variants\":[]},\"infographic\":null,\"probability\":null,\"weather_concerns\":null,\"failreason\":\"\",\"hashtag\":null,\"launch_service_provider\":{\"response_mode\":\"list\",\"id\":31,\"url\":\"https://ll.thespacedevs.com/2.3.0/agencies/31/\",\"name\":\"Indian Space Research Organization\",\"abbrev\":\"ISRO\",\"type\":{\"id\":1,\"name\":\"Government\"}},\"rocket"
+ },
+ {
+  "url": "https://archive.org/metadata/holst-the-planets-holst-london-symphony-orchestra-1922-1924",
+  "status": 200,
+  "type": "application/json",
+  "cors": "*",
+  "length": null,
+  "sample": "{\"alternate_locations\":{\"servers\":[{\"server\":\"dn721502.ca.archive.org\",\"dir\":\"/0/items/holst-the-planets-holst-london-symphony-orchestra-1922-1924\"}],\"workable\":[{\"server\":\"dn721502.ca.archive.org\",\"dir\":\"/0/items/holst-the-planets-holst-london-symphony-orchestra-1922-1924\"}]},\"created\":1793216614,\"d1\":\"ia601803.us.archive.org\",\"d2\":\"ia801803.us.archive.org\",\"dir\":\"/18/items/holst-the-planets-holst-london-symphony-orchestra-1922-1924\",\"files\":[{\"name\":\"The Planets Op. 32, H. 125_ I. Mars, The Bringer of War.afpk\",\"source\":\"derivative\",\"format\":\"Columbia Peaks\",\"original\":\"The Planets Op. 32, H. 125_ I. Mars, The Bringer of War.mp3\",\"mtime\":\"1736970174\",\"size\":\"85840\",\"md5\":\"1a0fc2ccc20af7ab6773f4cb012ac87b\",\"crc32\":\"f0ebb29e\",\"sha1\":\"21907a93d1e7a2e604d8c4efc6d542b5229fdfe3\"},{\"name\":\"The Planets Op. 32, H. 125_ I. Mars, The Bringer of War.mp3\",\"source\":\"original\",\"mtime\":\"1736965469\",\"size\":\"8956584\",\"md5\":\"93331f6ada3c17d89d3584b8dbbdbc66\",\"crc32\":\"0226d83b\",\"sha1\":\"2d8ce7ff14ca84e70044d11450ce3d0907057967\",\"format\":\"VBR MP3\",\"length\":\"373.16\",\"track\":\"01\"},{\"name\":\"The Planets Op. 32, H. 125_ I. Mars, The Bringer of War.png\",\"source\":\"derivative\",\"format\":\"PNG\",\"original\":\"The Planets Op. 32, H. 125_ I. Mars, The Bringer of War.mp3\",\"mtime\":\"1736966381\",\"size\":\"36644\",\"md5\":\"223ab3f66b1bbd4917dcf075a90cd0b4\",\"crc32\":\"166495c7\",\"sha1\":\"08464365033b63d38b9774d715bc3dc27cf9ddd4\"},{\"name\":\"The Planets Op. 32, H. 125_ I. Mars, The Bringer of War_spectrogram.png\",\"source\":\"deriv"
+ },
+ {
+  "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Fluidscape.mp3",
+  "status": 206,
+  "type": "application/octet-stream",
+  "cors": null,
+  "length": "1024",
+  "sample": null
+ },
+ {
+  "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Tranquility%20Base.mp3",
+  "status": 206,
+  "type": "application/octet-stream",
+  "cors": null,
+  "length": "1024",
+  "sample": null
+ },
+ {
+  "url": "https://ice1.somafm.com/missioncontrol-128-mp3",
+  "status": 403,
+  "type": "text/html",
+  "cors": "*",
+  "length": "0",
+  "sample": null
+ },
+ {
+  "url": "https://ice2.somafm.com/missioncontrol-128-mp3",
+  "status": 403,
+  "type": "text/html",
+  "cors": "*",
+  "length": "0",
+  "sample": null
+ },
+ {
+  "url": "https://ice4.somafm.com/missioncontrol-128-mp3",
+  "status": 403,
+  "type": "text/html",
+  "cors": "*",
+  "length": "0",
+  "sample": null
+ },
+ {
+  "url": "https://ice6.somafm.com/missioncontrol-128-mp3",
+  "status": 403,
+  "type": "text/html",
+  "cors": "*",
+  "length": "0",
+  "sample": null
+ },
+ {
+  "url": "https://ice.somafm.com/missioncontrol",
+  "status": 404,
+  "type": "text/html",
+  "cors": "*",
+  "length": "41",
+  "sample": null
+ },
+ {
+  "url": "https://somafm.com/missioncontrol130.pls",
+  "status": 200,
+  "type": "audio/x-scpls",
+  "cors": "*",
+  "length": null,
+  "sample": null
+ }
+]
