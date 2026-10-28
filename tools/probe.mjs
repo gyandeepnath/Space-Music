@@ -8,7 +8,7 @@ const probe = async (url, { body = true } = {}) => {
     const res = await fetch(url, { signal: ctrl.signal, headers: { origin: 'https://example.com', range: body ? undefined : 'bytes=0-1023' } });
     const type = res.headers.get('content-type') || '';
     let sample = null;
-    if (body && /json|text/.test(type)) sample = (await res.text()).slice(0, 1500);
+    if (body && /json|text|scpls/.test(type)) sample = (await res.text()).slice(0, 3000);
     else ctrl.abort();
     return { url, status: res.status, type, cors: res.headers.get('access-control-allow-origin'), length: res.headers.get('content-length'), sample };
   } catch (e) {
@@ -18,6 +18,10 @@ const probe = async (url, { body = true } = {}) => {
   }
 };
 const urls = [
+  'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&thumbs=true&start_date=2015-10-24&end_date=2015-11-01',
+  'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&thumbs=true&start_date=2023-10-24&end_date=2023-11-01',
+  'https://services.swpc.noaa.gov/products/summary/solar-wind-mag-field.json',
+  'https://images-api.nasa.gov/search?q=James%20Webb%20Space%20Telescope&media_type=image&page_size=3',
   'https://services.swpc.noaa.gov/products/solar-wind/plasma-2-hour.json',
   'https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json',
   'https://services.swpc.noaa.gov/products/solar-wind/plasma-1-day.json',
