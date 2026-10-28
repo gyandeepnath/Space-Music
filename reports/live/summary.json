@@ -1,0 +1,400 @@
+{
+  "site": "https://gyandeepnath.github.io/Space-Music/",
+  "checkedAt": "2026-10-28T21:11:48.097Z",
+  "files": {
+    "/": 200,
+    "music/catalog.json": 200,
+    "music/CREDITS.md": 200,
+    "music/youtube-description.txt": 200,
+    "sw.js": 200,
+    "music/tracks/fluidscape.mp3": "206 audio/mp3 bytes 1000-1999/10311449"
+  },
+  "viewports": {
+    "phone": {
+      "console": [
+        "warning: No available adapters.",
+        "error: Access to fetch at 'https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&num=60&page=0&order=sol+desc&extended=sample_type::full,' from origin 'https://gyandeepnath.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "error: Failed to load resource: net::ERR_FAILED",
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "failed": [
+        "net::ERR_ABORTED https://www.youtube.com/api/stats/qoe?cpn=osm42_pnTE8fV-LU&el=embedded&ns=yt&fexp=v1%2C100673025%2C1883%2C-76670264%2C494888%2C26564111%2C34656%2C124674%2C117689%2C9252%2C16509%2C23206%2C35405%2C65297%2C15105%2C25059%2C4174%2C30446%2C18706%2C26008%2C13016%2C14665%2C761%2C661%2C6621%",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/soaring.mp3",
+        "net::ERR_ABORTED https://www.youtube.com/youtubei/v1/log_event?alt=json",
+        "net::ERR_ABORTED https://www.youtube.com/api/stats/qoe?cpn=osm42_pnTE8fV-LU&el=embedded&ns=yt&fexp=v1%2C100673025%2C1883%2C-76670264%2C494888%2C26564111%2C34656%2C124674%2C117689%2C9252%2C16509%2C23206%2C35405%2C65297%2C15105%2C25059%2C4174%2C30446%2C18706%2C26008%2C13016%2C14665%2C761%2C661%2C6621%",
+        "net::ERR_ABORTED https://www.youtube.com/youtubei/v1/log_event?alt=json",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/wisps-of-whorls.mp3",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/soaring.mp3",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/soaring.mp3",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/soaring.mp3",
+        "net::ERR_FAILED https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&num=60&page=0&order=sol+desc&extended=sample_type::full,",
+        "404 https://api.nasa.gov/mars-photos/api/v1/rovers/perseverance/latest_photos?api_key=DEMO_KEY",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/holst-mercury.mp3"
+      ],
+      "stations": [
+        {
+          "station": "iss",
+          "name": "ISS Live",
+          "line": "12.9°N 172.9°E",
+          "cards": [
+            "Position: 12.9°N 172.9°E",
+            "Altitude: 424 km",
+            "Speed: 27,565 km/h",
+            "Over: the Pacific Ocean",
+            "Light: ☀ orbital day",
+            "Orbital sunset: in 42 min"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Soaring · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 88.5,
+            "src": "soaring.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0481
+          },
+          "slide": null,
+          "iframe": "https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ&autoplay=1&mute=1&controls=0&playsinline=1&rel=0"
+        },
+        {
+          "station": "earth",
+          "name": "Blue Marble",
+          "line": "Centred on 3.0°S 100.1°E",
+          "cards": [
+            "Images: 13 from the latest day",
+            "Taken: 2026-10-26 04:26 UTC",
+            "Centred on: 3.0°S 100.1°E",
+            "From: DSCOVR at Sun–Earth L1"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Wisps of Whorls · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 694.4,
+            "src": "wisps-of-whorls.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0647
+          },
+          "slide": {
+            "src": "https://epic.gsfc.nasa.gov/archive/natural/2026/10/26/jpg/epic_1b_20261026043120.jpg",
+            "w": 1080,
+            "h": 1080
+          },
+          "iframe": "about:blank"
+        },
+        {
+          "station": "sun",
+          "name": "Solar Live",
+          "line": "♪ Soaring · Kevin MacLeod",
+          "cards": [
+            "Channel: AIA 304 Å · chromosphere and prominences, ~50,000 °C",
+            "Solar wind: 398 km/s",
+            "Kp index: 0.0 · quiet",
+            "Magnetic field Bz: +1 nT · northward",
+            "Light delay: ≈ 8 min 20 s"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Soaring · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 329.4,
+            "src": "soaring.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0781
+          },
+          "slide": {
+            "src": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0304.jpg?t=1992468",
+            "w": 1024,
+            "h": 1024
+          },
+          "iframe": "about:blank"
+        },
+        {
+          "station": "mars",
+          "name": "Jezero",
+          "line": "218 million km away",
+          "cards": [
+            "Mission sol: 2023",
+            "Jezero time: 01:59 LMST ☾",
+            "Distance: 218.1 M km",
+            "Signal delay: 12 min 7 s"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Night Vigil · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 148.7,
+            "src": "night-vigil.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0331
+          },
+          "slide": {
+            "src": "https://images-assets.nasa.gov/image/PIA23925/PIA23925~medium.jpg",
+            "w": 1024,
+            "h": 1280
+          },
+          "iframe": "about:blank"
+        },
+        {
+          "station": "deep",
+          "name": "Deep Field",
+          "line": "CTIO Image of Carina Nebula",
+          "cards": [
+            "On screen: CTIO Image of Carina Nebula · NASA Image Library (archive)"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Prelude in C (BWV 846) · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 69.6,
+            "src": "bach-prelude-c.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0457
+          },
+          "slide": {
+            "src": "https://images-assets.nasa.gov/image/GSFC_20171208_Archive_e002075/GSFC_20171208_Archive_e002075~medium.jpg",
+            "w": 1272,
+            "h": 1280
+          },
+          "iframe": "about:blank"
+        },
+        {
+          "station": "launch",
+          "name": "Launch Pad",
+          "line": "GSLV Mk II",
+          "cards": [
+            "Mission: IRNSS-1L (NVS-03)",
+            "Vehicle: GSLV Mk II",
+            "Provider: Indian Space Research Organization",
+            "From: Satish Dhawan Space Centre, India",
+            "Status: Go for Launch",
+            "NET: Fri, 30 Oct 2026 18:21:00 UTC"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Eternal Hope · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 7.5,
+            "src": "eternal-hope.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.011
+          },
+          "slide": null,
+          "iframe": "about:blank"
+        }
+      ]
+    },
+    "desktop": {
+      "console": [
+        "warning: No available adapters.",
+        "error: Access to fetch at 'https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&num=60&page=0&order=sol+desc&extended=sample_type::full,' from origin 'https://gyandeepnath.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "error: Failed to load resource: net::ERR_FAILED",
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "failed": [
+        "net::ERR_ABORTED https://www.youtube.com/api/stats/qoe?cpn=mlbxDcrfNjfovQJC&el=embedded&ns=yt&fexp=v1%2C100673025%2C1883%2C-76670264%2C27058999%2C34656%2C124674%2C34972%2C82717%2C9252%2C16509%2C23206%2C35402%2C34394%2C30906%2C15105%2C25059%2C4174%2C30447%2C18705%2C26008%2C13015%2C11425%2C3241%2C1422",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/soaring.mp3",
+        "net::ERR_ABORTED https://www.youtube.com/youtubei/v1/log_event?alt=json",
+        "net::ERR_ABORTED https://www.youtube.com/api/stats/qoe?cpn=mlbxDcrfNjfovQJC&el=embedded&ns=yt&fexp=v1%2C100673025%2C1883%2C-76670264%2C27058999%2C34656%2C124674%2C34972%2C82717%2C9252%2C16509%2C23206%2C35402%2C34394%2C30906%2C15105%2C25059%2C4174%2C30447%2C18705%2C26008%2C13015%2C11425%2C3241%2C1422",
+        "net::ERR_ABORTED https://www.youtube.com/youtubei/v1/log_event?alt=json",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/soaring.mp3",
+        "net::ERR_FAILED https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&num=60&page=0&order=sol+desc&extended=sample_type::full,",
+        "404 https://api.nasa.gov/mars-photos/api/v1/rovers/perseverance/latest_photos?api_key=DEMO_KEY",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/overheat.mp3",
+        "net::ERR_ABORTED https://gyandeepnath.github.io/Space-Music/music/tracks/bach-prelude-c.mp3"
+      ],
+      "stations": [
+        {
+          "station": "iss",
+          "name": "ISS Live",
+          "line": "8.9°N 175.8°E",
+          "cards": [
+            "Position: 8.9°N 175.8°E",
+            "Altitude: 424 km",
+            "Speed: 27,564 km/h",
+            "Over: the Pacific Ocean",
+            "Light: ☀ orbital day",
+            "Orbital sunset: in 40 min"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Soaring · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 163.2,
+            "src": "soaring.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0812
+          },
+          "slide": null,
+          "iframe": "https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ&autoplay=1&mute=1&controls=0&playsinline=1&rel=0"
+        },
+        {
+          "station": "earth",
+          "name": "Blue Marble",
+          "line": "Centred on 3.3°S 143.1°W",
+          "cards": [
+            "Images: 13 from the latest day",
+            "Taken: 2026-10-26 20:38 UTC",
+            "Centred on: 3.3°S 143.1°W",
+            "From: DSCOVR at Sun–Earth L1"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Moonstone · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 49.1,
+            "src": "moonstone.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0213
+          },
+          "slide": {
+            "src": "https://epic.gsfc.nasa.gov/archive/natural/2026/10/26/jpg/epic_1b_20261026204343.jpg",
+            "w": 1080,
+            "h": 1080
+          },
+          "iframe": "about:blank"
+        },
+        {
+          "station": "sun",
+          "name": "Solar Live",
+          "line": "♪ Overheat · Kevin MacLeod",
+          "cards": [
+            "Channel: AIA 131 Å · flaring regions, up to ~10 million °C",
+            "Solar wind: 398 km/s",
+            "Kp index: 0.0 · quiet",
+            "Magnetic field Bz: +1 nT · northward",
+            "Light delay: ≈ 8 min 20 s"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Overheat · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 23.8,
+            "src": "overheat.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0395
+          },
+          "slide": {
+            "src": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0131.jpg?t=1992468",
+            "w": 1024,
+            "h": 1024
+          },
+          "iframe": "about:blank"
+        },
+        {
+          "station": "mars",
+          "name": "Jezero",
+          "line": "218 million km away",
+          "cards": [
+            "Mission sol: 2023",
+            "Jezero time: 02:01 LMST ☾",
+            "Distance: 218.0 M km",
+            "Signal delay: 12 min 7 s"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Night Vigil · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 223,
+            "src": "night-vigil.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0457
+          },
+          "slide": {
+            "src": "https://images-assets.nasa.gov/image/PIA24350/PIA24350~medium.jpg",
+            "w": 1280,
+            "h": 1161
+          },
+          "iframe": "about:blank"
+        },
+        {
+          "station": "deep",
+          "name": "Deep Field",
+          "line": "♪ Prelude in C (BWV 846) · Kevin MacLeod",
+          "cards": [
+            "On screen: A New View of the Tarantula Nebula · NASA Image Library (archive)"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Prelude in C (BWV 846) · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 143.8,
+            "src": "bach-prelude-c.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0375
+          },
+          "slide": {
+            "src": "https://images-assets.nasa.gov/image/PIA14415/PIA14415~medium.jpg",
+            "w": 1280,
+            "h": 1024
+          },
+          "iframe": "about:blank"
+        },
+        {
+          "station": "launch",
+          "name": "Launch Pad",
+          "line": "GSLV Mk II",
+          "cards": [
+            "Mission: IRNSS-1L (NVS-03)",
+            "Vehicle: GSLV Mk II",
+            "Provider: Indian Space Research Organization",
+            "From: Satish Dhawan Space Centre, India",
+            "Status: Go for Launch",
+            "NET: Fri, 30 Oct 2026 18:21:00 UTC"
+          ],
+          "signal": null,
+          "source": "tracks",
+          "nowPlaying": "Eternal Hope · Kevin MacLeod",
+          "music": {
+            "paused": false,
+            "time": 81.7,
+            "src": "eternal-hope.mp3"
+          },
+          "audio": {
+            "ctx": "running",
+            "level": 0.0098
+          },
+          "slide": null,
+          "iframe": "about:blank"
+        }
+      ]
+    }
+  },
+  "catalog": {
+    "tracks": 53,
+    "hours": 5.33
+  }
+}
