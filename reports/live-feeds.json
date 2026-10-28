@@ -1,0 +1,368 @@
+{
+ "wheretheiss.now": {
+  "url": "https://api.wheretheiss.at/v1/satellites/25544",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": {
+   "name": "iss",
+   "id": 25544,
+   "latitude": -1.5596722696901,
+   "longitude": -153.11103528129,
+   "altitude": 423.94335647498,
+   "velocity": 27562.119969681,
+   "visibility": "daylight",
+   "footprint": 4527.4713235651,
+   "timestamp": 1793216633,
+   "daynum": 2461342.3221412,
+   "solar_lat": -13.32048626517,
+   "solar_lon": 239.9667331466,
+   "units": "kilometers"
+  }
+ },
+ "wheretheiss.coordinates": {
+  "url": "https://api.wheretheiss.at/v1/coordinates/37.795517,-122.393693",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": {
+   "latitude": "37.795517",
+   "longitude": "-122.393693",
+   "timezone_id": "America/Los_Angeles",
+   "offset": -7,
+   "country_code": "US",
+   "map_url": "https://maps.google.com/maps?q=37.795517,-122.393693&z=4"
+  }
+ },
+ "epic.natural": {
+  "url": "https://epic.gsfc.nasa.gov/api/natural",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": [
+   "len=13",
+   {
+    "identifier": "20261026223145",
+    "caption": "This image was taken by NASA's EPIC camera onboard the NOAA DSCOVR spacecraft",
+    "image": "epic_1b_20261026223145",
+    "version": "04",
+    "centroid_coordinates": {
+     "lat": -3.33252,
+     "lon": -170.148926
+    },
+    "dscovr_j2000_position": {
+     "x": -1390559.153601,
+     "y": -580668.068356,
+     "z": -84163.111459
+    },
+    "lunar_j2000_position": {
+     "x": 265279.689353,
+     "y": 217955.141528,
+     "z": 128586.950537
+    },
+    "sun_j2000_position": {
+     "x": -124499843.199978,
+     "y": -74604581.118292,
+     "z": -32338342.533346
+    },
+    "attitude_quaternions": {
+     "q0": -0.33534,
+     "q1": -0.0939,
+     "q2": 0.17467,
+     "q3": 0.92099
+    },
+    "date": "2026-10-26 22:26:56",
+    "coords": {
+     "centroid_coordinates": "{…}",
+     "dscovr_j2000_position": "{…}",
+     "lunar_j2000_position": "{…}",
+     "sun_j2000_position": "{…}",
+     "attitude_quaternions": "{…}"
+    }
+   }
+  ]
+ },
+ "epic.via-api.nasa.gov": {
+  "url": "https://api.nasa.gov/EPIC/api/natural?api_key=DEMO_KEY",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": [
+   "len=13",
+   {
+    "identifier": "20261026223145",
+    "caption": "This image was taken by NASA's EPIC camera onboard the NOAA DSCOVR spacecraft",
+    "image": "epic_1b_20261026223145",
+    "version": "04",
+    "centroid_coordinates": {
+     "lat": -3.33252,
+     "lon": -170.148926
+    },
+    "dscovr_j2000_position": {
+     "x": -1390559.153601,
+     "y": -580668.068356,
+     "z": -84163.111459
+    },
+    "lunar_j2000_position": {
+     "x": 265279.689353,
+     "y": 217955.141528,
+     "z": 128586.950537
+    },
+    "sun_j2000_position": {
+     "x": -124499843.199978,
+     "y": -74604581.118292,
+     "z": -32338342.533346
+    },
+    "attitude_quaternions": {
+     "q0": -0.33534,
+     "q1": -0.0939,
+     "q2": 0.17467,
+     "q3": 0.92099
+    },
+    "date": "2026-10-26 22:26:56",
+    "coords": {
+     "centroid_coordinates": "{…}",
+     "dscovr_j2000_position": "{…}",
+     "lunar_j2000_position": "{…}",
+     "sun_j2000_position": "{…}",
+     "attitude_quaternions": "{…}"
+    }
+   }
+  ]
+ },
+ "swpc.plasma-5-minute": {
+  "url": "https://services.swpc.noaa.gov/products/solar-wind/plasma-5-minute.json",
+  "status": 404,
+  "ok": false,
+  "cors": null,
+  "contentType": "text/html; charset=iso-8859-1"
+ },
+ "swpc.kp-1m": {
+  "url": "https://services.swpc.noaa.gov/json/planetary_k_index_1m.json",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": [
+   "len=358",
+   {
+    "time_tag": "2026-10-28T19:39:00",
+    "kp_index": 1,
+    "estimated_kp": 1,
+    "kp": "1Z"
+   }
+  ]
+ },
+ "swpc.kp-products": {
+  "url": "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": [
+   "len=62",
+   {
+    "time_tag": "2026-10-28T15:00:00",
+    "Kp": 1.33,
+    "a_running": 5,
+    "station_count": 8
+   }
+  ]
+ },
+ "mars.raw-images": {
+  "url": "https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&num=5&page=0&order=sol+desc&extended=sample_type::full,",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json;charset=UTF-8",
+  "shape": {
+   "images": [
+    "len=5",
+    {
+     "extended": "{…}",
+     "sol": 2022,
+     "attitude": "(0.682294,0.00329392,0.063483,0.728309)",
+     "image_files": "{…}",
+     "imageid": "NRF_2022_0846456110_237ECM_N0930000NCAM02022_04_195J",
+     "camera": "{…}",
+     "caption": "NASA's Mars Perseverance rover acquired this image using its onboard Right Navig",
+     "sample_type": "Full",
+     "date_taken_mars": "Sol-02022M16:10:24.638",
+     "credit": "NASA/JPL-Caltech",
+     "date_taken_utc": "2026-10-28T11:07:05.435",
+     "json_link": "https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&i",
+     "link": "https://mars.nasa.gov/mars2020/multimedia/raw-images/NRF_2022_0846456110_237ECM_",
+     "drive": "0",
+     "title": "Mars Perseverance Sol 2022: Right Navigation Camera (Navcam)",
+     "site": 93,
+     "date_received": "2026-10-28T18:35:14Z"
+    }
+   ],
+   "per_page": "5",
+   "total_results": 578638,
+   "type": "mars2020-images-list-1.1",
+   "page": 0,
+   "mission": "mars2020",
+   "total_images": 1054453
+  }
+ },
+ "mars.photos-api": {
+  "url": "https://api.nasa.gov/mars-photos/api/v1/rovers/perseverance/latest_photos?api_key=DEMO_KEY",
+  "status": 404,
+  "ok": false,
+  "cors": "*",
+  "contentType": "text/html; charset=utf-8"
+ },
+ "nasa.images-api": {
+  "url": "https://images-api.nasa.gov/search?q=perseverance&media_type=image&page_size=2",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": {
+   "collection": {
+    "version": "1.1",
+    "href": "http://images-api.nasa.gov/search?q=perseverance&media_type=image&page_size=2",
+    "items": [
+     "len=2",
+     "{…}"
+    ],
+    "metadata": {
+     "total_hits": 1309
+    },
+    "links": [
+     "len=1",
+     "{…}"
+    ]
+   }
+  }
+ },
+ "apod": {
+  "url": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&thumbs=true&start_date=2026-10-25",
+  "status": 200,
+  "ok": true,
+  "cors": "https://example.com",
+  "contentType": "application/json",
+  "shape": [
+   "len=4",
+   {
+    "date": "2026-10-28",
+    "explanation": "To view this video please enable JavaScript, and consider upgrading to a web bro",
+    "hdurl": "https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x",
+    "media_type": "image",
+    "service_version": "v1",
+    "title": "NASA Science",
+    "url": "https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x"
+   }
+  ]
+ },
+ "launches.2.3.0": {
+  "url": "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=2",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": {
+   "count": 477,
+   "next": "https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=2&offset=2",
+   "previous": null,
+   "results": [
+    "len=2",
+    {
+     "id": "57ce0a39-d035-4f16-a418-bd6108f78199",
+     "url": "https://ll.thespacedevs.com/2.3.0/launches/57ce0a39-d035-4f16-a418-bd6108f78199/",
+     "name": "Falcon 9 Block 5 | Starlink Group 15-18",
+     "response_mode": "normal",
+     "slug": "falcon-9-block-5-starlink-group-15-18",
+     "launch_designator": null,
+     "status": "{…}",
+     "last_updated": "2026-10-28T19:32:47Z",
+     "net": "2026-10-31T03:48:00Z",
+     "net_precision": "{…}",
+     "window_end": "2026-10-31T07:48:00Z",
+     "window_start": "2026-10-31T03:48:00Z",
+     "image": "{…}",
+     "infographic": null,
+     "probability": null,
+     "weather_concerns": null,
+     "failreason": "",
+     "hashtag": null,
+     "launch_service_provider": "{…}",
+     "rocket": "{…}",
+     "mission": "{…}",
+     "pad": "{…}",
+     "webcast_live": false,
+     "program": "[1]",
+     "orbital_launch_attempt_count": 7426
+    }
+   ]
+  }
+ },
+ "launches.2.2.0": {
+  "url": "https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=2",
+  "status": 200,
+  "ok": true,
+  "cors": "*",
+  "contentType": "application/json",
+  "shape": {
+   "count": 477,
+   "next": "https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=2&offset=2",
+   "previous": null,
+   "results": [
+    "len=2",
+    {
+     "id": "57ce0a39-d035-4f16-a418-bd6108f78199",
+     "url": "https://ll.thespacedevs.com/2.2.0/launch/57ce0a39-d035-4f16-a418-bd6108f78199/",
+     "slug": "falcon-9-block-5-starlink-group-15-18",
+     "name": "Falcon 9 Block 5 | Starlink Group 15-18",
+     "status": "{…}",
+     "last_updated": "2026-10-28T19:32:47Z",
+     "net": "2026-10-31T03:48:00Z",
+     "window_end": "2026-10-31T07:48:00Z",
+     "window_start": "2026-10-31T03:48:00Z",
+     "net_precision": "{…}",
+     "probability": null,
+     "weather_concerns": null,
+     "holdreason": "",
+     "failreason": "",
+     "hashtag": null,
+     "launch_service_provider": "{…}",
+     "rocket": "{…}",
+     "mission": "{…}",
+     "pad": "{…}",
+     "webcast_live": false,
+     "image": "https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925",
+     "infographic": null,
+     "program": "[1]",
+     "orbital_launch_attempt_count": 7426,
+     "location_launch_attempt_count": 922
+    }
+   ]
+  }
+ },
+ "sdo.latest-0171": {
+  "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0171.jpg",
+  "status": 200,
+  "ok": true,
+  "cors": null,
+  "contentType": "image/jpeg"
+ },
+ "youtube.nasa-live": {
+  "url": "https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ",
+  "status": 200,
+  "ok": true,
+  "cors": null,
+  "contentType": "text/html; charset=utf-8"
+ },
+ "somafm.missioncontrol": {
+  "url": "https://ice.somafm.com/missioncontrol",
+  "status": 404,
+  "ok": false,
+  "cors": "*",
+  "contentType": "text/html"
+ }
+}
