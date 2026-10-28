@@ -1,0 +1,37 @@
+# Lists license-checked music candidates and checks the live data feeds from
+# GitHub's network, then commits the reports to reports/.
+name: Discover music and check feeds
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - tools/discover-music.mjs
+      - .github/workflows/discover.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: discover
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/discover-music.mjs
+      - name: Commit reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports
+          git diff --cached --quiet && exit 0
+          git commit -m "Update discovery reports [skip ci]"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
