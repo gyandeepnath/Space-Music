@@ -1,6 +1,6 @@
 // App-shell cache so Space Music opens instantly and works as an installed app.
 // Live data and imagery are always fetched from the network.
-const CACHE = 'space-music-v2';
+const CACHE = 'space-music-v3';
 const SHELL = [
   './',
   'index.html',
@@ -52,6 +52,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  // Music streams straight from the network: it's large, and seeking uses range requests.
+  if (url.pathname.includes('/music/') || e.request.headers.has('range')) return;
   e.respondWith(
     caches.open(CACHE).then(async (cache) => {
       const hit = await cache.match(e.request);

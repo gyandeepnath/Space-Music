@@ -1,0 +1,103 @@
+{
+  "about": "The curated music for Space Music. Every track is CC BY 4.0 (Kevin MacLeod, incompetech.com) or public domain (Holst conducting The Planets, 1922-24). tools/fetch-music.mjs downloads each one from its official source, checks the license, makes an excerpt of very long pieces, evens out loudness, and writes music/catalog.json and the credits. The station lists say which tracks play for each live-data mood.",
+  "maxSeconds": 720,
+  "sources": {
+    "incompetech": {
+      "artist": "Kevin MacLeod",
+      "site": "https://incompetech.com",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "downloadBase": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/",
+      "credit": "“{title}” Kevin MacLeod (incompetech.com) · Licensed under Creative Commons: By Attribution 4.0 License · http://creativecommons.org/licenses/by/4.0/"
+    },
+    "holst1922": {
+      "artist": "Gustav Holst, London Symphony Orchestra",
+      "archive": "holst-the-planets-holst-london-symphony-orchestra-1922-1924",
+      "site": "https://archive.org/details/holst-the-planets-holst-london-symphony-orchestra-1922-1924",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "expectLicense": "publicdomain/mark/1.0",
+      "credit": "“{title}” from The Planets by Gustav Holst, conducted by the composer with the London Symphony Orchestra (recorded 1922–24) · Public domain · via the Internet Archive"
+    }
+  },
+  "tracks": [
+    {"id": "fluidscape", "source": "incompetech", "title": "Fluidscape", "file": "Fluidscape.mp3"},
+    {"id": "soaring", "source": "incompetech", "title": "Soaring", "file": "Soaring.mp3"},
+    {"id": "aretes", "source": "incompetech", "title": "Aretes", "file": "Aretes.mp3"},
+    {"id": "frozen-star", "source": "incompetech", "title": "Frozen Star", "file": "Frozen Star.mp3"},
+    {"id": "deliberate-thought", "source": "incompetech", "title": "Deliberate Thought", "file": "Deliberate Thought.mp3"},
+    {"id": "airship-serenity", "source": "incompetech", "title": "Airship Serenity", "file": "Airship Serenity.mp3"},
+    {"id": "clean-soul", "source": "incompetech", "title": "Clean Soul", "file": "Clean Soul.mp3"},
+    {"id": "tranquility-base", "source": "incompetech", "title": "Tranquility Base", "file": "Tranquility Base.mp3"},
+    {"id": "earth-prelude", "source": "incompetech", "title": "Earth Prelude", "file": "Earth Prelude.mp3"},
+    {"id": "mirage", "source": "incompetech", "title": "Mirage", "file": "Mirage.mp3"},
+    {"id": "send-for-the-horses", "source": "incompetech", "title": "Send for the Horses", "file": "Send for the Horses.mp3"},
+    {"id": "shores-of-avalon", "source": "incompetech", "title": "Shores of Avalon", "file": "Shores of Avalon.mp3"},
+    {"id": "heart-of-nowhere", "source": "incompetech", "title": "Heart of Nowhere", "file": "Heart of Nowhere.mp3"},
+    {"id": "ambiment", "source": "incompetech", "title": "Ambiment", "file": "Ambiment.mp3"},
+    {"id": "music-for-manatees", "source": "incompetech", "title": "Music for Manatees", "file": "Music for Manatees.mp3"},
+    {"id": "eastminster", "source": "incompetech", "title": "Eastminster", "file": "Eastminster.mp3"},
+    {"id": "ripples", "source": "incompetech", "title": "Ripples", "file": "Ripples.mp3"},
+    {"id": "moonstone", "source": "incompetech", "title": "Moonstone", "file": "Moonstone.mp3"},
+    {"id": "wisps-of-whorls", "source": "incompetech", "title": "Wisps of Whorls", "file": "Wisps of Whorls.mp3"},
+    {"id": "overheat", "source": "incompetech", "title": "Overheat", "file": "Overheat.mp3"},
+    {"id": "tranquility", "source": "incompetech", "title": "Tranquility", "file": "Tranquility.mp3"},
+    {"id": "jellyfish-in-space", "source": "incompetech", "title": "Jellyfish in Space", "file": "Jellyfish in Space.mp3"},
+    {"id": "space-1990", "source": "incompetech", "title": "Space 1990", "file": "Space 1990.mp3"},
+    {"id": "orion-300xb", "source": "incompetech", "title": "Orion 300XB", "file": "Orion 300XB.mp3"},
+    {"id": "thunderbird", "source": "incompetech", "title": "Thunderbird", "file": "Thunderbird.mp3"},
+    {"id": "controlled-chaos-calm", "source": "incompetech", "title": "Controlled Chaos - no percussion", "file": "Controlled Chaos - no percussion.mp3"},
+    {"id": "thunder-dreams", "source": "incompetech", "title": "Thunder Dreams", "file": "Thunder Dreams.mp3"},
+    {"id": "spacial-harvest", "source": "incompetech", "title": "Spacial Harvest", "file": "Spacial Harvest.mp3"},
+    {"id": "impact-lento", "source": "incompetech", "title": "Impact Lento", "file": "Impact Lento.mp3"},
+    {"id": "alien-restaurant", "source": "incompetech", "title": "Alien Restaurant", "file": "Alien Restaurant.mp3"},
+    {"id": "dhaka", "source": "incompetech", "title": "Dhaka", "file": "Dhaka.mp3"},
+    {"id": "virtutes-instrumenti", "source": "incompetech", "title": "Virtutes Instrumenti", "file": "Virtutes Instrumenti.mp3"},
+    {"id": "juniper", "source": "incompetech", "title": "Juniper", "file": "Juniper.mp3"},
+    {"id": "drone-in-d", "source": "incompetech", "title": "Drone in D", "file": "Drone in D.mp3"},
+    {"id": "ossuary-1", "source": "incompetech", "title": "Ossuary 1 - A Beginning", "file": "Ossuary 1 - A Beginning.mp3"},
+    {"id": "night-vigil", "source": "incompetech", "title": "Night Vigil", "file": "Night Vigil.mp3"},
+    {"id": "mesmerize", "source": "incompetech", "title": "Mesmerize", "file": "Mesmerize.mp3"},
+    {"id": "almost-in-f", "source": "incompetech", "title": "Almost in F", "file": "Almost in F.mp3"},
+    {"id": "peace-of-mind", "source": "incompetech", "title": "Peace of Mind", "file": "Peace of Mind.mp3"},
+    {"id": "dreams-become-real", "source": "incompetech", "title": "Dreams Become Real", "file": "Dreams Become Real.mp3"},
+    {"id": "gymnopedie-1", "source": "incompetech", "title": "Gymnopedie No. 1", "file": "Gymnopedie No 1.mp3"},
+    {"id": "bach-prelude-c", "source": "incompetech", "title": "Prelude in C (BWV 846)", "file": "Prelude in C - BWV 846.mp3"},
+    {"id": "atlantean-twilight", "source": "incompetech", "title": "Atlantean Twilight", "file": "Atlantean Twilight.mp3"},
+    {"id": "eternal-hope", "source": "incompetech", "title": "Eternal Hope", "file": "Eternal Hope.mp3"},
+    {"id": "fanfare-for-space", "source": "incompetech", "title": "Fanfare for Space", "file": "Fanfare for Space.mp3"},
+    {"id": "tempting-secrets", "source": "incompetech", "title": "Tempting Secrets", "file": "Tempting Secrets.mp3"},
+    {"id": "holst-mars", "source": "holst1922", "title": "Mars, the Bringer of War", "match": "Mars, The Bringer"},
+    {"id": "holst-venus", "source": "holst1922", "title": "Venus, the Bringer of Peace", "match": "Venus, The Bringer"},
+    {"id": "holst-mercury", "source": "holst1922", "title": "Mercury, the Winged Messenger", "match": "Mercury, The Winged"},
+    {"id": "holst-jupiter", "source": "holst1922", "title": "Jupiter, the Bringer of Jollity", "match": "Jupiter, The Bringer"},
+    {"id": "holst-saturn", "source": "holst1922", "title": "Saturn, the Bringer of Old Age", "match": "Saturn, The Bringer"},
+    {"id": "holst-uranus", "source": "holst1922", "title": "Uranus, the Magician", "match": "Uranus, The Magician"},
+    {"id": "holst-neptune", "source": "holst1922", "title": "Neptune, the Mystic", "match": "Neptune, The Mystic"}
+  ],
+  "stations": {
+    "iss": {
+      "day": ["fluidscape", "soaring", "aretes", "frozen-star", "deliberate-thought", "airship-serenity", "clean-soul"],
+      "night": ["tranquility-base", "earth-prelude", "mirage", "send-for-the-horses", "shores-of-avalon", "heart-of-nowhere"]
+    },
+    "earth": {
+      "default": ["ambiment", "eastminster", "music-for-manatees", "ripples", "wisps-of-whorls", "moonstone"]
+    },
+    "sun": {
+      "quiet": ["overheat", "tranquility", "deliberate-thought", "soaring"],
+      "active": ["jellyfish-in-space", "orion-300xb", "thunderbird", "space-1990", "overheat"],
+      "storm": ["controlled-chaos-calm", "thunder-dreams", "spacial-harvest", "impact-lento"]
+    },
+    "mars": {
+      "day": ["alien-restaurant", "dhaka", "virtutes-instrumenti", "holst-mars", "juniper", "heart-of-nowhere"],
+      "night": ["drone-in-d", "ossuary-1", "night-vigil", "mesmerize"]
+    },
+    "deep": {
+      "default": ["almost-in-f", "holst-venus", "dreams-become-real", "gymnopedie-1", "peace-of-mind", "holst-neptune", "impact-lento", "bach-prelude-c", "atlantean-twilight", "holst-saturn"]
+    },
+    "launch": {
+      "wait": ["eternal-hope", "airship-serenity", "frozen-star", "holst-mercury"],
+      "build": ["fanfare-for-space", "tempting-secrets", "holst-jupiter", "orion-300xb", "holst-uranus", "space-1990", "holst-mars"]
+    }
+  }
+}

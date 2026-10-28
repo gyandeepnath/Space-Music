@@ -1,0 +1,65 @@
+# Builds the site (app + station music downloaded from the official sources)
+# and publishes it to the gh-pages branch, served by GitHub Pages at
+# https://<owner>.github.io/<repo>/. The music never enters the main branch.
+name: Publish site
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'reports/**'
+      - 'docs/**'
+      - 'test/**'
+      - '**.md'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    # Only the default branch publishes.
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+      - name: Cache downloaded music
+        uses: actions/cache@v4
+        with:
+          path: .music-cache
+          key: music-${{ hashFiles('music/selection.json') }}
+          restore-keys: music-
+      - name: Build site
+        run: node tools/build-site.mjs
+      - name: Publish to gh-pages
+        run: |
+          cd _site
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          # Fetch the current site so unchanged music isn't uploaded again.
+          git fetch -q --depth=1 origin gh-pages || true
+          git add -A
+          git commit -q -m "Publish ${GITHUB_SHA::7}"
+          git push -q --force origin gh-pages
+      - name: Check the live site
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$SITE_URL") || true
+            echo "attempt $i: $SITE_URL -> $code"
+            [ "$code" = "200" ] && curl -s -o /dev/null -w "catalog: %{http_code}\n" "${SITE_URL}music/catalog.json" && exit 0
+            sleep 15
+          done
+          echo "::warning::The site isn't live yet. If this is the first publish, turn on GitHub Pages: Settings → Pages → Deploy from a branch → gh-pages / (root)."
