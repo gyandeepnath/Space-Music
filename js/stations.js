@@ -2,6 +2,9 @@
 // mapping from live data to the engine's modulators ("sonification"), plus
 // what the Space DJ says about it.
 //
+// Music is composed on a shared wall-clock grid (see engine.js), so everyone
+// tuned to a station hears the same thing at the same moment.
+//
 // Dial "frequencies" are real numbers tied to each subject:
 //   408   ISS altitude in km        1.5  Earth–L1 distance, million km
 //   193   SDO wavelength in Å       225  mean Earth–Mars distance, million km
@@ -98,6 +101,10 @@ const iss = {
   unit: 'km',
   name: 'ISS Live',
   tagline: 'International Space Station · live from low Earth orbit',
+  about:
+    'A live camera on the International Space Station, about 400 km up, and a map of where it is right now. The station circles Earth every 93 minutes, so for a third of each orbit the camera looks into night.',
+  sound:
+    'Orbital sunrise switches the music to a bright key; Earth’s shadow brings a darker one, about sixteen times a day. Higher latitudes add wind.',
   view: 'iss',
   soma: 'missioncontrol',
   refreshMs: 5000,
@@ -168,13 +175,18 @@ const iss = {
   },
 
   ticker(d) {
-    if (!d.fix) return 'ACQUIRING ISS TELEMETRY';
+    if (!d.fix) return 'Acquiring ISS telemetry';
     const f = d.fix;
-    const parts = [`${fmtLat(f.lat)} ${fmtLon(f.lon)}`, `ALT ${f.alt.toFixed(0)} KM`, `${int(f.velocity)} KM/H`];
     const place = issPlace(d);
-    if (place) parts.push(`OVER ${place.toUpperCase()}`);
-    parts.push(issLit(d) ? 'DAYLIGHT' : 'IN SHADOW');
-    return parts.join(' · ');
+    return [
+      place && `Over ${place}`,
+      issLit(d) ? 'Orbital daylight' : 'In Earth’s shadow',
+      `${int(f.velocity)} km/h`,
+      `${f.alt.toFixed(0)} km up`,
+      `${fmtLat(f.lat)} ${fmtLon(f.lon)}`,
+    ]
+      .filter(Boolean)
+      .join(' · ');
   },
 
   intro(d) {
@@ -218,6 +230,9 @@ const earth = {
   unit: 'M km',
   name: 'Blue Marble',
   tagline: 'The whole sunlit Earth, from NASA’s EPIC camera at L1',
+  about:
+    'The whole sunlit face of Earth, photographed by NASA’s EPIC camera on the DSCOVR spacecraft, 1.5 million km away. Every frame is a real photo from the latest day.',
+  sound: 'The chords follow the longitude at the centre of the picture, so the harmony turns with the planet.',
   view: 'slides',
   soma: 'spacestation',
   refreshMs: 30 * 60e3,
@@ -260,9 +275,9 @@ const earth = {
   },
 
   ticker(d, now, slide) {
-    if (!d.items?.length) return 'WAITING FOR DSCOVR / EPIC';
-    const parts = ['EARTH FROM L1', `${d.items.length} FRAMES`];
-    if (Number.isFinite(slide?.lat)) parts.push(`CENTRE ${fmtLat(slide.lat)} ${fmtLon(slide.lon)}`);
+    if (!d.items?.length) return 'Waiting for DSCOVR';
+    const parts = ['The whole Earth, from L1', `${d.items.length} photos from the latest day`];
+    if (Number.isFinite(slide?.lat)) parts.push(`Centred on ${fmtLat(slide.lat)} ${fmtLon(slide.lon)}`);
     return parts.join(' · ');
   },
 
@@ -292,6 +307,10 @@ const sun = {
   unit: 'Å',
   name: 'Solar Live',
   tagline: 'The Sun right now, from NASA SDO · space weather from NOAA',
+  about:
+    'The Sun as NASA’s Solar Dynamics Observatory saw it minutes ago, cycling through six wavelengths of light that each show plasma at a different temperature.',
+  sound:
+    'A faster solar wind makes the music busier and brighter, denser wind adds noise, and geomagnetic activity adds tension. A storm switches to a whole-tone scale.',
   view: 'slides',
   soma: 'deepspaceone',
   refreshMs: 5 * 60e3,
@@ -315,8 +334,8 @@ const sun = {
   hasSignal: () => true, // SDO images are plain <img> loads; the slideshow handles failures
   slides: () => ({ items: sdoImages(), fit: 'contain', interval: 10000 }),
 
-  // Solar wind speed drives tempo, proton density the wind noise, Kp the
-  // tension; a geomagnetic storm (Kp ≥ 5) switches to a whole-tone scale.
+  // Solar wind speed drives how busy and bright it is, proton density the wind
+  // noise, Kp the tension; a geomagnetic storm (Kp ≥ 5) switches to whole-tone.
   sonify(d) {
     const w = d.weather?.wind;
     const kp = d.weather?.kp?.value;
@@ -345,12 +364,12 @@ const sun = {
 
   ticker(d, now, slide) {
     const parts = [];
-    if (slide?.channel) parts.push(slide.channel.label.toUpperCase());
     const w = d.weather?.wind;
-    if (w) parts.push(`WIND ${int(w.speed)} KM/S`);
+    if (w) parts.push(`Solar wind ${int(w.speed)} km/s`);
     const kp = d.weather?.kp?.value;
-    if (Number.isFinite(kp)) parts.push(`KP ${kp.toFixed(1)} ${stormLevel(kp).toUpperCase()}`);
-    return parts.join(' · ') || 'THE SUN, LIVE';
+    if (Number.isFinite(kp)) parts.push(`Kp ${kp.toFixed(1)} (${stormLevel(kp)})`);
+    if (slide?.channel) parts.push(`${slide.channel.label}: ${slide.channel.detail}`);
+    return parts.join(' · ') || 'The Sun, live';
   },
 
   weatherReport(d) {
@@ -401,6 +420,10 @@ const mars = {
   unit: 'M km',
   name: 'Jezero',
   tagline: 'Perseverance rover · latest raw images from Mars',
+  about:
+    'The latest raw images from NASA’s Perseverance rover in Jezero Crater, straight from its cameras. The clock is the local time on Mars where the rover is.',
+  sound:
+    'The music follows the time of day at Jezero: brighter in daylight, and windier in the afternoon, when dust devils are most common.',
   view: 'slides',
   soma: 'dronezone',
   refreshMs: 60 * 60e3,
@@ -454,7 +477,12 @@ const mars = {
 
   ticker(d, now) {
     const m = marsFacts(now);
-    return `SOL ${m.clock.sol} · JEZERO ${m.clock.label} LMST · ${(m.dist.km / 1e6).toFixed(0)} M KM · DELAY ${Math.round(m.dist.lightSeconds / 60)} MIN`;
+    return [
+      `Sol ${m.clock.sol}`,
+      `${m.clock.label} at Jezero, ${m.daylight ? 'daytime' : 'night'}`,
+      `${(m.dist.km / 1e6).toFixed(0)} million km away`,
+      `Signals take ${Math.round(m.dist.lightSeconds / 60)} min`,
+    ].join(' · ');
   },
 
   clockLine(now) {
@@ -491,6 +519,8 @@ const deep = {
   unit: 'Gyr',
   name: 'Deep Field',
   tagline: 'Astronomy Picture of the Day, and the wider cosmos',
+  about: 'NASA’s Astronomy Picture of the Day and the days before it: galaxies, nebulae, eclipses, and the occasional rocket.',
+  sound: 'The key and the melody are seeded by today’s date, so there’s a new piece every day.',
   view: 'slides',
   soma: 'deepspaceone',
   refreshMs: 6 * 3600e3,
@@ -524,14 +554,15 @@ const deep = {
   telemetry(d, now, slide) {
     const rows = [];
     if (d.today) rows.push(["Today's APOD", d.today.title]);
-    if (slide?.title && slide !== d.today) rows.push(['On screen', `${slide.title} (${slide.date})`]);
+    if (slide?.title && slide.date !== d.today?.date) rows.push(['On screen', `${slide.title} (${slide.date})`]);
     else if (slide?.caption && !slide.title) rows.push(['On screen', slide.caption]);
     return rows;
   },
 
   ticker(d, now, slide) {
-    if (!d.items?.length) return 'SCANNING THE DEEP SKY';
-    return (slide?.title ? `APOD ${slide.date} · ${slide.title}` : slide?.caption || 'DEEP FIELD').toUpperCase();
+    if (!d.items?.length) return 'Scanning the deep sky';
+    if (slide?.title) return [slide.title, slide.date === d.today?.date ? 'Today’s picture' : `APOD ${slide.date}`].join(' · ');
+    return slide?.caption || 'Deep Field';
   },
 
   intro(d) {
@@ -541,7 +572,7 @@ const deep = {
   },
 
   bulletins(d) {
-    const items = (d.items || []).filter((i) => i.title && i !== d.today).slice(0, 3);
+    const items = (d.items || []).filter((i) => i.title && i.date !== d.today?.date).slice(0, 3);
     return [
       ...items.map((i) => `From the archive, ${i.date}: “${i.title}”. ${firstSentences(i.explanation, 200)}`),
       'The music on Deep Field is seeded by today’s date. Tomorrow, the key and the melody will be different.',
@@ -561,6 +592,8 @@ const launch = {
   unit: '',
   name: 'Launch Pad',
   tagline: 'The next rocket launch on Earth, counting down',
+  about: 'A live countdown to the next rocket launch anywhere on Earth, with what’s coming after it.',
+  sound: 'The music gets busier over the last 48 hours of the countdown, and the telemetry blips speed up towards liftoff.',
   view: 'launch',
   soma: 'missioncontrol',
   refreshMs: 30 * 60e3,
@@ -608,8 +641,8 @@ const launch = {
 
   ticker(d, now) {
     const n = nextLaunch(d, now);
-    if (!n) return 'NO LAUNCH DATA';
-    return `${countdown(n.net - now)} · ${n.mission.toUpperCase()} · ${n.rocket.toUpperCase()}`;
+    if (!n) return 'No launch data';
+    return [countdown(n.net - now), n.mission, n.rocket, n.location].filter(Boolean).join(' · ');
   },
 
   launchLine(d, now) {

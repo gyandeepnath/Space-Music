@@ -44,6 +44,54 @@ export function hashString(s) {
   return h >>> 0;
 }
 
+// --- Composition as a pure function of the clock -------------------------------
+//
+// Chords and notes sit on a grid of eighth notes counted from the Unix epoch,
+// and every random choice is seeded by (station, grid slot). Anyone tuned to
+// the same station computes the same music for the same moment, so a friend
+// who opens your link hears the chord you're hearing, with no server involved.
+
+export const MOVES = [-2, -1, -1, 1, 1, 2, 0, 3, -3];
+
+export function slotRandom(seed, slot, lane) {
+  return mulberry32(hashString(`${seed}:${lane}:${slot}`));
+}
+
+export function chordPlan(seed, chord) {
+  const r = slotRandom(seed, chord, 'ch');
+  return { seventh: r(), ninth: r() };
+}
+
+export function stepPlan(seed, step) {
+  const r = slotRandom(seed, step, 'st');
+  return {
+    trigger: r(),
+    octave: r(),
+    color: r(),
+    colorPick: r(),
+    level: r(),
+    decay: r(),
+    pan: r(),
+    blip: r(),
+    blipNote: r(),
+    blipDouble: r(),
+  };
+}
+
+function walkMove(seed, step, deg, base) {
+  const move = MOVES[Math.floor(slotRandom(seed, step, 'mv')() * MOVES.length)];
+  return Math.max(base, Math.min(base + 11, deg + move));
+}
+
+// The melody restarts each chord from a seeded degree, then takes one seeded
+// move every eighth note (sounding or not), so it can be computed for any step.
+export function melodyDegree(seed, step, stepsPerChord, base) {
+  const chord = Math.floor(step / stepsPerChord);
+  let deg = base + 3 + Math.floor(slotRandom(seed, chord, 'm0')() * 5);
+  for (let j = chord * stepsPerChord; j <= step; j++) deg = walkMove(seed, j, deg, base);
+  return deg;
+}
+
 const DEFAULT_MOOD = {
   root: 'D',
   scale: 'lydian',
@@ -65,14 +113,14 @@ export class MusicEngine {
     this.ctx = null;
     this.mood = { ...DEFAULT_MOOD };
     this.mod = { ...DEFAULT_MOD };
-    this.rng = Math.random;
+    this.seed = 0;
     this.playing = false;
     this.voices = new Set();
     this.timer = null;
-    this.step = 0;
-    this.melodyDeg = 7;
-    this.progressionIndex = 0;
-    this.currentDegree = 0;
+    this.walk = null;
+    this.wallOffset = 0;
+    this.holdUntil = 0;
+    this.currentChord = null;
   }
 
   get running() {
@@ -101,9 +149,7 @@ export class MusicEngine {
     await this.prepare(element);
     if (this.playing) return;
     this.playing = true;
-    const now = this.ctx.currentTime;
-    this.nextChordAt = now + 0.1;
-    this.nextStepAt = now + 0.4;
+    this.cue(0.1);
     this.applyContinuous(true);
     this.ramp(this.fade.gain, 1, 2.5);
     if (!this.timer) this.timer = setInterval(() => this.tick(), 100);
@@ -303,13 +349,13 @@ export class MusicEngine {
     osc.stop(now + seconds);
   }
 
-  // Switch to a station's mood, crossing through static.
+  // Switch to a station's mood, crossing through static. `mood.id` names the
+  // station; it seeds the composition so every listener gets the same piece.
   setMood(mood, mod = {}) {
     this.mood = { ...DEFAULT_MOOD, ...mood };
     this.mod = { ...DEFAULT_MOD, ...mod };
-    this.rng = this.mood.seed != null ? mulberry32(this.mood.seed) : Math.random;
-    this.progressionIndex = 0;
-    this.melodyDeg = 7;
+    this.seed = hashString(`${this.mood.id ?? 'station'}:${this.mood.seed ?? ''}`);
+    this.walk = null;
     if (!this.ctx || !this.playing) return;
     this.staticBurst();
     this.releaseVoices(0.5);
@@ -320,8 +366,7 @@ export class MusicEngine {
     f.linearRampToValueAtTime(0, now + 0.4);
     f.setValueAtTime(0, now + 0.8);
     f.linearRampToValueAtTime(1, now + 3.5);
-    this.nextChordAt = now + 0.85;
-    this.nextStepAt = now + 1.2;
+    this.cue(0.8);
     this.applyContinuous(true);
   }
 
@@ -332,7 +377,15 @@ export class MusicEngine {
   }
 
   get bpm() {
-    return this.mood.bpm * (0.8 + 0.5 * this.mod.energy);
+    return this.mood.bpm;
+  }
+
+  get stepSec() {
+    return 30 / this.mood.bpm; // eighth notes
+  }
+
+  get stepsPerChord() {
+    return this.mood.chordBeats * 2;
   }
 
   get scale() {
@@ -350,6 +403,32 @@ export class MusicEngine {
     return this.rootMidi() + s[idx] + 12 * oct;
   }
 
+  chordDegree(chord) {
+    const p = this.mood.progression;
+    return this.mod.degree ?? p[((chord % p.length) + p.length) % p.length];
+  }
+
+  // Map wall-clock seconds onto the audio clock, using the moment samples
+  // actually leave the speakers when the browser can tell us.
+  syncClock() {
+    const ts = this.ctx.getOutputTimestamp?.();
+    this.wallOffset =
+      ts && ts.performanceTime > 0 && ts.contextTime > 0
+        ? (performance.timeOrigin + ts.performanceTime) / 1000 - ts.contextTime
+        : Date.now() / 1000 - this.ctx.currentTime;
+  }
+
+  // Line the scheduler up with the wall-clock grid, starting `delay` s from now.
+  // A listener arriving mid-chord joins that chord rather than waiting for the next.
+  cue(delay) {
+    this.syncClock();
+    const startWall = this.ctx.currentTime + this.wallOffset + delay;
+    this.holdUntil = startWall;
+    this.nextStep = Math.ceil(startWall / this.stepSec);
+    this.nextChord = Math.floor(this.nextStep / this.stepsPerChord);
+    this.walk = null;
+  }
+
   applyContinuous(immediate) {
     const t = immediate ? 0.5 : 4;
     const b = this.mod.brightness;
@@ -363,15 +442,22 @@ export class MusicEngine {
 
   tick() {
     if (!this.running) return;
-    const ahead = this.ctx.currentTime + 0.35;
-    while (this.nextChordAt < ahead) {
-      this.playChord(this.nextChordAt);
-      this.nextChordAt += (this.mood.chordBeats * 60) / this.bpm;
+    this.syncClock();
+    const nowWall = this.ctx.currentTime + this.wallOffset;
+    const aheadWall = nowWall + 0.35;
+    const step = this.stepSec;
+    const chordSec = step * this.stepsPerChord;
+    while (this.nextChord * chordSec < aheadWall) {
+      const c = this.nextChord++;
+      const startWall = Math.max(c * chordSec, this.holdUntil, nowWall);
+      const endWall = (c + 1) * chordSec;
+      this.playChord(c, startWall - this.wallOffset, endWall - this.wallOffset, chordSec);
     }
-    while (this.nextStepAt < ahead) {
-      this.playStep(this.nextStepAt);
-      this.nextStepAt += 30 / this.bpm;
-      this.step++;
+    while (this.nextStep * step < aheadWall) {
+      const k = this.nextStep++;
+      const wall = k * step;
+      // Skip notes we're already late for (e.g. after the tab was throttled).
+      if (wall >= nowWall - 0.02) this.playStep(k, wall - this.wallOffset);
     }
     // Let the wind wander.
     if (Math.random() < 0.05) {
@@ -404,32 +490,34 @@ export class MusicEngine {
     }
   }
 
-  playChord(t) {
-    const { progression, chordBeats, padWave } = this.mood;
-    const degree = this.mod.degree ?? progression[this.progressionIndex++ % progression.length];
-    this.currentDegree = degree;
-    const len = (chordBeats * 60) / this.bpm;
+  // Chord `c` sounds from t0 (its slot start, or later when joining) to t1.
+  playChord(c, t0, t1, len) {
+    const degree = this.chordDegree(c);
+    this.currentChord = { index: c, degree };
+    const plan = chordPlan(this.seed, c);
     const degrees = [degree, degree + 2, degree + 4];
-    if (this.rng() < 0.45 + 0.4 * this.mod.tension) degrees.push(degree + 6);
-    if (this.mod.brightness > 0.6 && this.rng() < 0.4) degrees.push(degree + 8);
+    if (plan.seventh < 0.45 + 0.4 * this.mod.tension) degrees.push(degree + 6);
+    if (this.mod.brightness > 0.6 && plan.ninth < 0.4) degrees.push(degree + 8);
 
     const detune = 5 + 14 * this.mod.tension;
     for (const d of degrees) {
       let midi = this.scaleNote(d);
       while (midi > 70) midi -= 12;
-      this.padVoice(midiToHz(midi), t, len, padWave, detune, 0.045);
+      this.padVoice(midiToHz(midi), t0, t1, len, this.mood.padWave, detune, 0.045);
     }
-    this.padVoice(midiToHz(this.scaleNote(degree) - 12), t, len, 'sine', 0, 0.13);
+    this.padVoice(midiToHz(this.scaleNote(degree) - 12), t0, t1, len, 'sine', 0, 0.13);
   }
 
-  padVoice(freq, t, len, wave, detune, level) {
+  padVoice(freq, t0, t1, len, wave, detune, level) {
+    const releaseStart = t1 - len * 0.15;
+    if (releaseStart - t0 < 0.4) return; // too late to join this chord; the next is close
     const ctx = this.ctx;
     const g = ctx.createGain();
-    const attack = len * 0.35;
-    const end = t + len * 1.55;
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(level, t + attack);
-    g.gain.setValueAtTime(level, t + len * 0.85);
+    const attack = Math.min(len * 0.35, (releaseStart - t0) * 0.8);
+    const end = t1 + len * 0.55; // overlaps the next chord's swell
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(level, t0 + attack);
+    g.gain.setValueAtTime(level, releaseStart);
     g.gain.linearRampToValueAtTime(0, end);
     g.connect(this.padBus);
     const oscs = (detune ? [-detune, detune] : [0]).map((cents) => {
@@ -438,42 +526,54 @@ export class MusicEngine {
       o.frequency.value = freq;
       o.detune.value = cents;
       o.connect(g);
-      o.start(t);
+      o.start(t0);
       return o;
     });
     this.track(oscs, g, end);
   }
 
-  playStep(t) {
+  melodyAt(k) {
+    const spc = this.stepsPerChord;
+    const c = Math.floor(k / spc);
+    const base = this.chordDegree(c);
+    const w = this.walk;
+    const deg =
+      w && w.k === k - 1 && w.c === c && w.base === base
+        ? walkMove(this.seed, k, w.deg, base)
+        : melodyDegree(this.seed, k, spc, base);
+    this.walk = { k, c, base, deg };
+    return deg;
+  }
+
+  playStep(k, t) {
     const { density, pluckWave } = this.mood;
     const { energy, tension, brightness, pulse } = this.mod;
-    const strong = this.step % 4 === 0 ? 1 : this.step % 2 === 0 ? 0.7 : 0.45;
-    if (this.rng() < density * (0.45 + energy) * strong) {
-      this.melodyDeg += [-2, -1, -1, 1, 1, 2, 0, 3, -3][Math.floor(this.rng() * 9)];
-      this.melodyDeg = Math.max(this.currentDegree, Math.min(this.currentDegree + 11, this.melodyDeg));
-      let midi = this.scaleNote(this.melodyDeg) + 12;
-      if (brightness > 0.55 && this.rng() < 0.25) midi += 12;
+    const p = stepPlan(this.seed, k);
+    const strong = k % 4 === 0 ? 1 : k % 2 === 0 ? 0.7 : 0.45;
+    const deg = this.melodyAt(k);
+    if (p.trigger < density * (0.45 + energy) * strong) {
+      let midi = this.scaleNote(deg) + 12;
+      if (brightness > 0.55 && p.octave < 0.25) midi += 12;
       // Under tension, sometimes reach for a note outside the scale.
-      if (this.rng() < tension * 0.25) midi += this.rng() < 0.5 ? 1 : 6;
-      this.pluck(midiToHz(midi), t, pluckWave, 0.11 + 0.05 * this.rng());
+      if (p.color < tension * 0.25) midi += p.colorPick < 0.5 ? 1 : 6;
+      this.pluck(midiToHz(midi), t, pluckWave, 0.11 + 0.05 * p.level, 1.4 + 2.6 * p.decay, p.pan * 1.4 - 0.7);
     }
-    if (this.rng() < pulse * 0.18) {
-      const midi = this.scaleNote(14 + Math.floor(this.rng() * 5)) + 12;
+    if (p.blip < pulse * 0.18) {
+      const midi = this.scaleNote(14 + Math.floor(p.blipNote * 5)) + 12;
       this.blip(midiToHz(midi), t);
-      if (this.rng() < 0.4) this.blip(midiToHz(midi), t + 0.12);
+      if (p.blipDouble < 0.4) this.blip(midiToHz(midi), t + 0.12);
     }
   }
 
-  pluck(freq, t, wave, level) {
+  pluck(freq, t, wave, level, decay, panPos) {
     const ctx = this.ctx;
     const g = ctx.createGain();
-    const decay = 1.4 + 2.6 * this.rng();
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(level, t + 0.008);
     g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
     const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     if (pan) {
-      pan.pan.value = this.rng() * 1.4 - 0.7;
+      pan.pan.value = panPos;
       g.connect(pan).connect(this.pluckBus);
     } else {
       g.connect(this.pluckBus);
@@ -510,7 +610,7 @@ export class MusicEngine {
     this.track([o], g, t + 0.08);
   }
 
-  // RMS output level, 0..~1, for the VU meter.
+  // RMS output level, 0..~1.
   level() {
     if (!this.analyser) return 0;
     const buf = new Float32Array(this.analyser.fftSize);
@@ -518,5 +618,12 @@ export class MusicEngine {
     let sum = 0;
     for (const v of buf) sum += v * v;
     return Math.sqrt(sum / buf.length);
+  }
+
+  // Current output waveform (for the oscilloscope), or null before audio starts.
+  waveform(into) {
+    if (!this.analyser) return null;
+    this.analyser.getFloatTimeDomainData(into);
+    return into;
   }
 }

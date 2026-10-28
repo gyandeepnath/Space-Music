@@ -2,7 +2,9 @@
 
 > **A radio for the solar system.** Tune between live views of space (the ISS, the whole Earth, the Sun, Mars, the deep sky, the next rocket launch) and hear music that is composed, live, from what you're looking at.
 
-This doc explores the idea: what makes it different, how people would use it, how the music could work, how it gets into a car or onto a TV, and which decisions are still open. The prototype in this repo implements the core of it.
+This doc explores the idea: what makes it different, how people would use it, how the music could work, how people listen together, how it gets onto a TV or into a car, and which decisions are still open. The prototype in this repo implements the core of it.
+
+**Direction (decided): phone and web first, and social.** It should be easy to send someone a link and listen together, and to put the stream on YouTube, TikTok and other social platforms so people can tune in from there.
 
 ---
 
@@ -25,24 +27,40 @@ Each station maps live (or live-computed) data onto the music. That's what makes
 | --- | --- | --- | --- | --- | --- |
 | 1 | **408** km (ISS altitude) | **ISS Live** | NASA's ISS camera, plus a map with the ground track and day/night line | Position, altitude, speed, sunlight vs Earth's shadow | Orbital sunrise switches to a bright lydian key, Earth's shadow to a darker dorian one, about 16 times a day. Higher latitudes bring more "wind" |
 | 2 | **1.5** M km (to L1) | **Blue Marble** | NASA EPIC's full-disk Earth images from DSCOVR | Longitude at the centre of each frame | The chord follows the longitude, so the harmony turns with the planet |
-| 3 | **193** Å (SDO channel) | **Solar Live** | SDO's Sun in six wavelengths | Solar wind speed and density, Kp index (NOAA) | Wind speed sets tempo and brightness, density sets the noise, Kp sets the tension. A geomagnetic storm (Kp ≥ 5) switches to a whole-tone scale |
+| 3 | **193** Å (SDO channel) | **Solar Live** | SDO's Sun in six wavelengths | Solar wind speed and density, Kp index (NOAA) | Wind speed makes it busier and brighter, density sets the noise, Kp sets the tension. A geomagnetic storm (Kp ≥ 5) switches to a whole-tone scale |
 | 4 | **225** M km (to Mars) | **Jezero** | Perseverance's latest raw images | Mission sol, local time at Jezero, Earth–Mars distance and signal delay (computed) | Mars daytime is brighter. Afternoons are windier, matching the dust-devil peak |
 | 5 | **13.8** Gyr (age of the universe) | **Deep Field** | Astronomy Picture of the Day, plus the archive | Today's date | The key and melody are seeded by the date, so there's a new piece every day |
-| 6 | **T-0** | **Launch Pad** | Countdown to the next launch anywhere on Earth | Upcoming launches (Launch Library 2) | Energy builds over the last 48 hours, and the "telemetry blips" speed up toward liftoff |
+| 6 | **T-0** | **Launch Pad** | Countdown to the next launch anywhere on Earth | Upcoming launches (Launch Library 2) | It gets busier over the last 48 hours, and the "telemetry blips" speed up towards liftoff |
 
-**The radio around it:** presets 1–6, a dial you can drag with real static between stations, an LCD with car-radio-style scrolling text, and a **Space DJ**. The DJ uses the device's own text-to-speech to read live facts between the music, for example: *"The crew is moving at 27,600 kilometres an hour, over Kazakhstan, where it's 4:12 pm. Orbital sunset in about 11 minutes."* The music ducks while it talks, and every line is captioned.
+**The radio around it:** swipe between stations, or drag a tuning ruler with real static between the stations. The player's text steps through live facts, like RDS on a car radio, and an oscilloscope draws the actual music. There's also a **Space DJ**. The DJ uses the device's own text-to-speech to read live facts between the music, for example: *"The crew is moving at 27,600 kilometres an hour, over Kazakhstan, where it's 4:12 pm. Orbital sunset in about 11 minutes."* The music ducks while it talks, and each sentence is subtitled as it's spoken.
 
-## 3. Three ways to use it
+## 3. Ways to use it
 
 | Mode | Where | The screen | The sound |
 | --- | --- | --- | --- |
-| **Window** | TV, desktop second screen, tablet on a stand | Full-bleed live view; the controls fade away | Ambient, always on |
-| **Radio** | Phone, headphones | Glanceable | Primary: the DJ tells you what's happening |
-| **Car** | Phone in a dash mount (later: CarPlay / Android Auto) | Six giant presets and an LCD. **Nothing moves** | Primary: steering-wheel next/previous changes station |
+| **Phone and web** (primary) | Phone, laptop, headphones | Full-bleed live view: swipe between stations, a tuning ruler, live data in a sheet | Live composition, with the DJ between the music |
+| **Broadcast** | YouTube Live, Twitch, TikTok, Instagram, YouTube Shorts | An on-air layout with a QR code to tune in, 16:9 or vertical | The same live composition, so viewers can join on their phones |
+| **TV** | TV, desktop second screen | Full screen; the controls fade away | Ambient, always on |
+| **Car** | Phone in a dash mount (later: CarPlay / Android Auto) | Six big presets. **Nothing moves** | Primary: steering-wheel next/previous changes station |
 
-All three exist in the prototype (the **Window** and **Car** buttons; radio is the default).
+All four exist in the prototype.
 
-## 4. Music strategy (the big decision)
+## 4. Listening together
+
+**Everyone on a station hears the same music at the same moment, with no server.** The composition runs on a grid of eighth notes counted from the Unix epoch, and every random choice (which notes sound, the melody's walk, the chord colours) is seeded by station and grid slot. The live data that shapes the music (orbital sunrise, solar wind, the time on Mars) is the same for everyone, and slideshows are locked to the clock too. So when a friend opens your link, their phone joins mid-chord, on the same note and the same picture. Device clocks are typically within a fraction of a second of each other, which is plenty for ambient music.
+
+What's built:
+- **Shareable station links** (`…/#sun`), the phone's **share sheet** (with copy-link as a fallback), and a **QR code** for people in the same room.
+- **Link previews** for messaging and social apps (Open Graph image and text).
+- **Broadcast mode** (`?broadcast`) for YouTube, Twitch, TikTok and Instagram: an on-air layout with a QR code, a ticker and an "up next" schedule that follows the clock. See [BROADCAST.md](BROADCAST.md).
+- **Lock-screen and headset controls** with per-station artwork, and **home-screen shortcuts** to each station when installed.
+
+What would need a small backend (none of it is built):
+- **"142 listening now"** presence, reactions or chat. A tiny realtime service (e.g. Cloudflare Durable Objects or Supabase Realtime) would do; it doesn't have to carry audio.
+- **Unattended 24/7 YouTube channel:** today it needs OBS running on some machine. A headless renderer on a server could stream it on its own.
+- **Shareable clips** (a 15-second vertical video of "this moment" for Reels/TikTok): in-browser recording is possible, but many space images aren't served with the CORS headers needed to draw them into a video, so this likely needs a server-side renderer.
+
+## 5. Music strategy (the big decision)
 
 | Option | Pros | Cons | Status |
 | --- | --- | --- | --- |
@@ -55,7 +73,7 @@ All three exist in the prototype (the **Window** and **Car** buttons; radio is t
 
 **Recommendation:** lead with **A** (it *is* the product and it's legally clean), keep **B** as the "just play me something" option, and grow toward **E**: invite artists to write stems for each station, and let the live data arrange them.
 
-## 5. Getting into the car
+## 6. Getting into the car
 
 **Today (built): an installable web app (PWA).**
 - The **Media Session API** puts station and live info ("ISS Live · over Kazakhstan · daylight") on the car's display over Bluetooth, and maps **steering-wheel next/previous to station changes**.
@@ -69,13 +87,13 @@ All three exist in the prototype (the **Window** and **Car** buttons; radio is t
 
 **The architectural fork this exposes:** today the music is generated *in your browser*. Native car apps, smart speakers ("Alexa, play Solar Live"), TuneIn and similar outlets all want an **audio stream**. Rendering each station on a server and broadcasting it (Icecast/HLS) would make Space Music a *real* radio station: everyone hears the same orbital sunrise at the same moment, the DJ can be rendered server-side with a better voice, and one server fetch serves all listeners, which also fixes API rate limits. The trade-off is hosting cost, and losing the personal, offline-capable version.
 
-## 6. Getting onto the TV
+## 7. Getting onto the TV
 
-- Window mode already works as a TV screensaver: cast a tab, or open it in a smart-TV browser.
+- TV mode already works as a TV screensaver: cast a tab, or open it in a smart-TV browser.
 - Samsung (Tizen) and LG (webOS) TV apps are web apps, so this codebase ports with little change. Apple TV, Android TV and Fire TV need native shells.
 - The pitch here is "ambient TV": like Apple's Aerial screensavers, but live, and with sound.
 
-## 7. More station and feature ideas
+## 8. More station and feature ideas
 
 - **"Look up!" ISS pass alerts:** using your location plus orbital elements (CelesTrak TLEs and SGP4), the DJ breaks in with *"The ISS will be overhead in 3 minutes, look to the north-west."* Probably the single most delightful feature.
 - **Deep Space Network station:** NASA's *DSN Now* shows which spacecraft are talking to Earth right now. Each active link becomes a voice: pitch from the frequency band, volume from signal strength, echo from the round-trip light time (Voyager 1's is around two days). Needs a tiny CORS proxy.
@@ -84,7 +102,7 @@ All three exist in the prototype (the **Window** and **Car** buttons; radio is t
 - **Moon / JWST / Juno stations**, a sleep timer, and an "orbital sunrise" alarm clock.
 - **Shared listening rooms** (natural with server broadcast).
 
-## 8. Risks and open questions
+## 9. Risks and open questions
 
 - **Live sources are flaky by nature.** The ISS camera is dark for about a third of each orbit and has loss-of-signal gaps. The prototype answers this with the map, the "in Earth's shadow, sunrise in N min" overlay and an honest "no signal" state, never fake data.
 - **Rate limits:** NASA's DEMO_KEY allows about 30 requests an hour per IP, and Launch Library about 15 an hour. Fine for one person; real users need a small caching backend, or the server-broadcast design above.
@@ -92,9 +110,10 @@ All three exist in the prototype (the **Window** and **Car** buttons; radio is t
 - **Endpoint churn:** NOAA reformatted several JSON feeds in March 2026 (the prototype parses both formats). The Perseverance raw-image feed is a public website API rather than a formal one. YouTube live IDs change; the prototype embeds NASA's channel by default and lets you paste a specific stream.
 - **Driver distraction:** car mode must stay audio-first; native car platforms enforce this anyway.
 
-## 9. Decisions for you
+## 10. Decisions for you
 
-1. **Which form factor first?** TV/ambient, phone radio, or car? Each pulls the design in a different direction.
-2. **Music direction:** generative-first (as built), curated radio, or artist collaborations (stems)?
-3. **Personal app or broadcast station?** (client-generated vs server-streamed; see §5)
-4. **Next platform:** polish the PWA, native Android (Android Auto), or iOS (CarPlay)?
+1. ~~**Which form factor first?**~~ Decided: **phone and web**, with social listening and streaming.
+2. **Music direction:** live composition first (as built), curated radio, or artist collaborations (stems)?
+3. **A 24/7 channel?** Run OBS on an always-on machine now, or invest in a server-side renderer that streams unattended (and also unlocks clips and smart speakers; see §6)?
+4. **Presence and chat:** worth adding a small realtime backend for "N listening now" and reactions?
+5. **A name and a domain:** the QR codes and share links need a public home (GitHub Pages works today).

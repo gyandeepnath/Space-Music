@@ -1,24 +1,38 @@
 // App-shell cache so Space Music opens instantly and works as an installed app.
 // Live data and imagery are always fetched from the network.
-const CACHE = 'space-music-v1';
+const CACHE = 'space-music-v2';
 const SHELL = [
   './',
   'index.html',
   'css/style.css',
+  'manifest.webmanifest',
   'js/app.js',
   'js/astro.js',
   'js/dj.js',
   'js/engine.js',
   'js/map.js',
+  'js/qr.js',
   'js/radio.js',
   'js/sources.js',
   'js/stations.js',
   'js/views.js',
+  'vendor/qrcode.mjs',
   'data/land.json',
+  'fonts/space-grotesk-latin-400-normal.woff2',
+  'fonts/space-grotesk-latin-500-normal.woff2',
+  'fonts/space-grotesk-latin-600-normal.woff2',
+  'fonts/space-grotesk-latin-700-normal.woff2',
+  'fonts/jetbrains-mono-latin-400-normal.woff2',
+  'fonts/jetbrains-mono-latin-500-normal.woff2',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',
-  'manifest.webmanifest',
+  'art/iss.png',
+  'art/earth.png',
+  'art/sun.png',
+  'art/mars.png',
+  'art/deep.png',
+  'art/launch.png',
 ];
 
 self.addEventListener('install', (e) => {

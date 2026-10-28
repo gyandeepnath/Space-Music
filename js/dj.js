@@ -1,5 +1,8 @@
 // The Space DJ: reads live facts between the music using the browser's own
-// speech synthesis, ducks the music while talking, and captions everything.
+// speech synthesis, ducks the music while talking, and subtitles each sentence
+// as it's spoken. Without a voice it still shows the subtitles, paced for reading.
+
+const WORDS_PER_SECOND = 2.7;
 
 export class SpaceDJ {
   constructor({ onCaption, onDuck }) {
@@ -8,9 +11,8 @@ export class SpaceDJ {
     this.enabled = true;
     this.voiceName = null;
     this.synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
-    this.queue = 0;
     this.gen = 0;
-    this.captionTimer = null;
+    this.timers = [];
   }
 
   voices() {
@@ -30,60 +32,77 @@ export class SpaceDJ {
     );
   }
 
+  clearTimers() {
+    for (const t of this.timers) clearTimeout(t);
+    this.timers = [];
+  }
+
+  later(fn, ms) {
+    this.timers.push(setTimeout(fn, ms));
+  }
+
   stop() {
     this.gen++;
-    clearTimeout(this.fallback);
+    this.clearTimers();
     this.synth?.cancel();
-    this.queue = 0;
     this.onDuck(false);
-    this.caption('');
+    this.onCaption('');
   }
 
+  // Show a one-off message in the subtitle area.
   caption(text, seconds) {
-    clearTimeout(this.captionTimer);
+    this.clearTimers();
     this.onCaption(text);
-    if (text && seconds) this.captionTimer = setTimeout(() => this.onCaption(''), seconds * 1000);
+    if (text && seconds) this.later(() => this.onCaption(''), seconds * 1000);
   }
 
-  // Speak a line. Chrome cuts off long utterances, so speak sentence by sentence.
   say(text) {
     if (!this.enabled || !text) return;
-    const readingSeconds = Math.max(4, text.split(/\s+/).length / 2.6);
-    if (!this.synth) {
-      this.caption(text, readingSeconds + 2);
-      return;
-    }
-    this.synth.cancel();
-    clearTimeout(this.fallback);
-    const gen = ++this.gen;
+    this.stop();
+    const gen = this.gen;
     const sentences = text.match(/[^.!?]+[.!?]*/g)?.map((s) => s.trim()).filter(Boolean) || [text];
     const voice = this.pickVoice();
-    this.queue = sentences.length;
-    this.current = text;
-    this.caption(text);
+    if (!this.synth || !voice) {
+      this.subtitles(sentences, gen);
+      return;
+    }
+    // Chrome cuts off long utterances, so speak sentence by sentence.
+    let left = sentences.length;
     this.onDuck(true);
-    // If the browser has no voices or never fires events, don't leave the music ducked.
-    this.fallback = setTimeout(() => this.finish(), (readingSeconds + 8) * 1000);
+    const words = text.split(/\s+/).length;
+    // If the browser never reports the end of speech, don't leave the music ducked.
+    this.later(() => gen === this.gen && this.finish(), (words / WORDS_PER_SECOND + 10) * 1000);
     for (const s of sentences) {
       const u = new SpeechSynthesisUtterance(s);
-      if (voice) u.voice = voice;
+      u.voice = voice;
       u.rate = 0.96;
       u.pitch = 0.92;
+      u.onstart = () => gen === this.gen && this.onCaption(s);
       u.onend = u.onerror = () => {
         // Cancelled utterances from an earlier line still fire events; ignore them.
         if (gen !== this.gen) return;
-        if (--this.queue <= 0) {
-          clearTimeout(this.fallback);
-          this.finish();
-        }
+        if (--left <= 0) this.finish();
       };
       this.synth.speak(u);
     }
   }
 
+  // No voice available: step through the sentences at reading pace.
+  subtitles(sentences, gen) {
+    let i = 0;
+    const next = () => {
+      if (gen !== this.gen) return;
+      if (i >= sentences.length) return this.finish();
+      const s = sentences[i++];
+      this.onCaption(s);
+      this.later(next, Math.max(2400, (s.split(/\s+/).length / WORDS_PER_SECOND) * 1000 + 600));
+    };
+    next();
+  }
+
   finish() {
-    this.queue = 0;
+    this.clearTimers();
     this.onDuck(false);
-    this.caption(this.current, 3); // linger briefly, then clear
+    this.later(() => this.onCaption(''), 1200);
   }
 }

@@ -3,6 +3,8 @@
 // Nothing here invents data: on failure the caller gets an error and the UI
 // shows "no signal".
 
+import { hashString, mulberry32 } from './engine.js';
+
 export const store = {
   get(key, fallback = null) {
     try {
@@ -54,10 +56,12 @@ async function firstOk(loaders) {
   throw lastError;
 }
 
-function shuffle(list) {
+// Shuffled the same way for everyone on the same UTC day, so slideshows stay in sync.
+function dailyShuffle(list, salt) {
+  const rand = mulberry32(hashString(`${salt}:${new Date().toISOString().slice(0, 10)}`));
   const a = list.slice();
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -259,7 +263,7 @@ export async function nasaLibrary(query) {
       };
     })
     .filter(Boolean);
-  return shuffle(items).slice(0, 30);
+  return dailyShuffle(items, query).slice(0, 30);
 }
 
 // --- Deep space (APOD) -----------------------------------------------------------
@@ -277,16 +281,21 @@ function apodItem(a) {
   };
 }
 
+// Today's picture plus the days before it: the same list for everyone.
 export function apod(nasaKey) {
   const day = new Date().toISOString().slice(0, 10);
   return cached(`apod:${day}`, 6 * 3600e3, async () => {
-    const base = `https://api.nasa.gov/planetary/apod?api_key=${nasaKey}&thumbs=true`;
-    const [today, random] = await Promise.allSettled([getJSON(base), getJSON(`${base}&count=12`)]);
-    const todayItem = today.status === 'fulfilled' ? apodItem(today.value) : null;
-    const more = random.status === 'fulfilled' ? random.value.map(apodItem).filter(Boolean) : [];
-    if (todayItem || more.length) return { today: todayItem, items: [todayItem, ...more].filter(Boolean) };
+    const since = new Date(Date.now() - 9 * 86400e3).toISOString().slice(0, 10);
+    let error;
+    try {
+      const list = await getJSON(`https://api.nasa.gov/planetary/apod?api_key=${nasaKey}&thumbs=true&start_date=${since}`);
+      const items = list.map(apodItem).filter(Boolean).reverse(); // newest first
+      if (items.length) return { today: items[0], items };
+    } catch (e) {
+      error = e;
+    }
     const archive = await nasaLibrary('James Webb Space Telescope');
-    if (!archive.length) throw today.reason;
+    if (!archive.length) throw error || new Error('no APOD images');
     return { today: null, items: archive };
   });
 }
