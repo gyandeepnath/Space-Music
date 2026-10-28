@@ -216,13 +216,13 @@ function cameraName(instrument = '') {
   return hit ? hit[1] : instrument.replace(/_/g, ' ') || 'Camera';
 }
 
-export function marsImages(nasaKey) {
+// Perseverance's raw-image feed has no CORS header, so the site publishes a
+// snapshot of it (tools/fetch-feeds.mjs, refreshed every few hours).
+export function marsImages() {
   return cached('mars', 2 * 3600e3, () =>
     firstOk([
       async () => {
-        const d = await getJSON(
-          'https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&feedtype=json&num=60&page=0&order=sol+desc&extended=sample_type::full,',
-        );
+        const d = await getJSON(new URL('data/mars.json', document.baseURI).href);
         const all = (d.images || [])
           .filter((i) => i.image_files?.large || i.image_files?.medium)
           .map((i) => ({
@@ -234,19 +234,9 @@ export function marsImages(nasaKey) {
           }));
         // Prefer the landscape cameras over close-up engineering shots.
         const scenic = all.filter((i) => ['Mastcam-Z', 'Navcam', 'Hazcam', 'MEDA SkyCam'].includes(i.camera));
-        return (scenic.length >= 6 ? scenic : all).slice(0, 30);
-      },
-      async () => {
-        const d = await getJSON(
-          `https://api.nasa.gov/mars-photos/api/v1/rovers/perseverance/latest_photos?api_key=${nasaKey}`,
-        );
-        return (d.latest_photos || []).slice(0, 30).map((p) => ({
-          src: p.img_src,
-          caption: `Perseverance · ${p.camera?.full_name ?? 'Camera'} · Sol ${p.sol}`,
-          sol: p.sol,
-          camera: p.camera?.full_name,
-          time: p.earth_date,
-        }));
+        const list = (scenic.length >= 6 ? scenic : all).slice(0, 30);
+        if (!list.length) throw new Error('no Perseverance images in the snapshot');
+        return list;
       },
       () => nasaLibrary('Perseverance rover Jezero crater'),
     ]),

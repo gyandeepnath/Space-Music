@@ -6,7 +6,7 @@ import { STATIONS } from './stations.js';
 import { MusicEngine } from './engine.js';
 import { StreamPlayer, SOMA_CHANNELS } from './radio.js';
 import { SpaceDJ } from './dj.js';
-import { Starfield, Slideshow, IssView, LaunchView, Scope } from './views.js';
+import { Slideshow, IssView, LaunchView, Scope } from './views.js';
 import { WorldMap } from './map.js';
 import { store } from './sources.js';
 import { qrSvg } from './qr.js';
@@ -38,7 +38,8 @@ const state = {
   nowPlaying: null,
   djOn: BROADCAST ? params.get('dj') !== '0' : store.get('dj', true),
   volume: Number(store.get('volume', 0.8)),
-  issMain: store.get('issMain', 'camera'),
+  // NASA's camera is often off air, so the map is the default.
+  issMain: store.get('issMain', 'map'),
   data: Object.fromEntries(STATIONS.map((s) => [s.id, {}])),
   status: {},
   errors: {},
@@ -79,7 +80,6 @@ const dj = new SpaceDJ({
 dj.enabled = state.djOn;
 dj.voiceName = settings.voice;
 
-const starfield = new Starfield($('#stars'));
 const slideshow = new Slideshow($('#view-slides'));
 const issView = new IssView($('#view-iss'), new WorldMap($('#view-iss .iss-map')));
 const launchView = new LaunchView($('#view-launch'));
@@ -112,128 +112,22 @@ function joinUrl(st = station()) {
 
 const prettyUrl = (url) => url.replace(/^https?:\/\//, '').replace(/\/index\.html/, '/');
 
-// ---------------------------------------------------------------- tuner and presets
+// ---------------------------------------------------------------- station tabs
 
-let markW = 86;
-
-function buildTuner() {
-  const track = $('#tuner-track');
-  const presets = $('#presets');
-  STATIONS.forEach((s, i) => {
-    const mark = document.createElement('button');
-    mark.type = 'button';
-    mark.className = 'tuner-mark';
-    mark.dataset.index = i;
-    mark.innerHTML = '<b></b><small></small>';
-    mark.firstChild.textContent = s.freq;
-    mark.lastChild.textContent = s.name;
-    mark.setAttribute('aria-label', `${s.name}, ${s.freq} ${s.unit}`);
-    mark.addEventListener('click', () => tune(i, { via: 'button' }));
-    track.append(mark);
-
-    const p = document.createElement('button');
-    p.type = 'button';
-    p.className = 'preset';
-    p.dataset.station = s.id;
-    p.innerHTML = '<span class="orb" aria-hidden="true"></span><span><b></b><small></small></span>';
-    p.querySelector('b').textContent = s.name;
-    p.querySelector('small').textContent = `${i + 1} · ${s.freq} ${s.unit}`.trim();
-    p.addEventListener('click', () => tune(i, { via: 'button' }));
-    presets.append(p);
-  });
-  $('#tuner').setAttribute('aria-valuemax', N);
-}
-
-const tuner = $('#tuner');
-let ignoreScrollUntil = 0;
-let settleTimer = null;
-let touching = false;
-let lastDetent = null;
-
-function measureMark() {
-  markW = tuner.querySelector('.tuner-mark')?.offsetWidth || markW;
-}
-
-function scrollTunerTo(i, smooth) {
-  measureMark();
-  ignoreScrollUntil = Date.now() + (smooth ? 900 : 120);
-  lastDetent = i;
-  tuner.scrollTo({ left: i * markW, behavior: smooth ? 'smooth' : 'instant' });
-}
-
-function settleTuner() {
-  if (touching || tuner.classList.contains('dragging')) return;
-  engine.setStatic(0);
-  const i = Math.max(0, Math.min(N - 1, Math.round(tuner.scrollLeft / markW)));
-  if (i !== state.index) tune(i, { via: 'tuner' });
-}
-
-tuner.addEventListener(
-  'scroll',
-  () => {
-    if (Date.now() < ignoreScrollUntil) return;
-    const v = tuner.scrollLeft / markW;
-    const near = Math.round(v);
-    if (state.powered) engine.setStatic(Math.min(1, Math.abs(v - near) * 2.2));
-    if (near !== lastDetent) {
-      lastDetent = near;
-      haptic(6);
-    }
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(settleTuner, 160);
-  },
-  { passive: true },
-);
-tuner.addEventListener('touchstart', () => (touching = true), { passive: true });
-tuner.addEventListener(
-  'touchend',
-  () => {
-    touching = false;
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(settleTuner, 220);
-  },
-  { passive: true },
-);
-
-// Mouse: drag the ruler like a dial.
-{
-  let drag = null;
-  tuner.addEventListener('pointerdown', (e) => {
-    if (e.pointerType !== 'mouse' || e.button !== 0) return;
-    drag = { x: e.clientX, left: tuner.scrollLeft, moved: false };
-  });
-  addEventListener('pointermove', (e) => {
-    if (!drag) return;
-    const dx = e.clientX - drag.x;
-    if (!drag.moved && Math.abs(dx) < 4) return;
-    drag.moved = true;
-    tuner.classList.add('dragging');
-    tuner.scrollLeft = drag.left - dx;
-  });
-  addEventListener('pointerup', () => {
-    if (!drag) return;
-    const moved = drag.moved;
-    drag = null;
-    if (!moved) return;
-    tuner.classList.remove('dragging');
-    const i = Math.max(0, Math.min(N - 1, Math.round(tuner.scrollLeft / markW)));
-    engine.setStatic(0);
-    scrollTunerTo(i, true);
-    if (i !== state.index) tune(i, { via: 'tuner' });
-    // Swallow the click that ends a drag.
-    tuner.addEventListener('click', (ev) => ev.stopPropagation(), { capture: true, once: true });
-  });
-  let wheelAt = 0;
-  tuner.addEventListener(
-    'wheel',
-    (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // horizontal: native scroll
-      e.preventDefault();
-      if (Date.now() - wheelAt < 450) return;
-      wheelAt = Date.now();
-      tune(state.index + (e.deltaY > 0 ? 1 : -1), { via: 'button' });
-    },
-    { passive: false },
+function buildStations() {
+  $('#stations').replaceChildren(
+    ...STATIONS.map((s, i) => {
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'station-tab';
+      tab.innerHTML = '<small></small><b></b>';
+      tab.firstChild.textContent = s.freq;
+      tab.lastChild.textContent = s.short;
+      tab.title = `${s.name} · ${i + 1}`;
+      tab.setAttribute('aria-label', `${s.name}, ${s.freq} ${s.unit}`.trim());
+      tab.addEventListener('click', () => tune(i, { via: 'button' }));
+      return tab;
+    }),
   );
 }
 
@@ -295,7 +189,6 @@ function tune(i, { via = 'button' } = {}) {
   const target = ((i % N) + N) % N;
   const initial = via === 'initial';
   if (target === state.index && !initial) {
-    if (via !== 'tuner') scrollTunerTo(target, true);
     if (state.powered && via === 'button') announceSoon(); // tap again to hear what's on
     return;
   }
@@ -311,7 +204,6 @@ function tune(i, { via = 'button' } = {}) {
   state.visualFailed[st.id] = false;
   if (!initial) leaveView(prev);
   enterView(st, !initial);
-  if (via !== 'tuner') scrollTunerTo(target, !initial);
   rds.reset();
   startPolling(st);
   if (state.powered) {
@@ -437,9 +329,22 @@ const rds = {
 setInterval(() => rds.step(), 3200);
 
 function tickerSegments(st) {
-  const segs = st.ticker(data(), Date.now(), state.slide).split(' · ');
-  const t = source() === 'tracks' && state.powered ? state.nowPlaying : null;
-  return t ? [`♪ ${t.title} · ${t.artist}`, ...segs] : segs;
+  return st.ticker(data(), Date.now(), state.slide).split(' · ');
+}
+
+// The line under the station name steps through what the facts don't already say.
+function lineSegments(st) {
+  const shown = st.facts(data(), Date.now(), state.slide).map(([, v]) => String(v));
+  const segs = tickerSegments(st).filter((seg) => !shown.some((v) => v.length > 2 && seg.includes(v)));
+  return segs.length ? segs : [st.tagline];
+}
+
+// What's playing, for the line under the station name.
+function trackLine(st = station()) {
+  if (!state.powered) return '';
+  if (source() === 'tracks') return state.nowPlaying ? `♪ ${state.nowPlaying.title} · ${state.nowPlaying.artist}` : '';
+  if (source() === 'fm') return `♪ SomaFM · ${SOMA_CHANNELS[st.soma]}`;
+  return '♪ Composed live from the data';
 }
 
 function ago(ms) {
@@ -469,17 +374,36 @@ function renderNowPlaying() {
   ]) {
     $(sel).textContent = val;
   }
-  document.querySelectorAll('.tuner-mark').forEach((m, i) => m.setAttribute('aria-current', i === state.index));
-  document.querySelectorAll('.preset').forEach((p, i) => p.setAttribute('aria-current', i === state.index));
-  $('#tuner').setAttribute('aria-valuenow', state.index + 1);
-  $('#tuner').setAttribute('aria-valuetext', `${st.name}, ${st.freq} ${st.unit}`);
+  document.querySelectorAll('.station-tab').forEach((t, i) => t.setAttribute('aria-current', i === state.index));
+  $('#np-track').textContent = trackLine(st);
+  body.classList.toggle('playing', state.powered);
   const play = $('#play');
   play.setAttribute('aria-pressed', state.powered);
   play.setAttribute('aria-label', state.powered ? 'Pause' : 'Tune in');
   document.querySelectorAll('[data-source]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.source === state.source));
   $('#dj-toggle').checked = state.djOn;
   $('#volume').value = state.volume;
-  $('.iss-swap span').textContent = state.issMain === 'camera' ? 'Map' : 'Camera';
+  $('#volume').style.setProperty('--fill', `${state.volume * 100}%`);
+  document.querySelectorAll('[data-iss]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.iss === state.issMain));
+}
+
+// Up to three headline facts under the station; a long first one leaves room for one more.
+function renderFacts() {
+  const st = station();
+  const facts = st.facts(data(), Date.now(), state.slide).slice(0, 3);
+  const long = facts.length && String(facts[0][1]).length > 18;
+  $('#facts').replaceChildren(
+    ...facts.slice(0, long ? 2 : 3).map(([k, v]) => {
+      const div = document.createElement('div');
+      const dt = document.createElement('dt');
+      const dd = document.createElement('dd');
+      dt.textContent = k;
+      dd.textContent = v;
+      dd.title = v;
+      div.append(dt, dd);
+      return div;
+    }),
+  );
 }
 
 function renderSheet() {
@@ -492,7 +416,7 @@ function renderSheet() {
   el.replaceChildren(document.createElement('i'));
   el.append(
     status === 'ok'
-      ? `Live · updated ${ago(state.updatedAt[st.id])}`
+      ? `Updated ${ago(state.updatedAt[st.id])}`
       : status === 'error'
         ? `No signal · retrying (${state.errors[st.id]})`
         : 'Acquiring signal…',
@@ -502,20 +426,20 @@ function renderSheet() {
   const cards = $('#cards');
   if (!rows.length) {
     const empty = document.createElement('p');
-    empty.className = 'cards-empty';
+    empty.className = 'rows-empty';
     empty.textContent = status === 'error' ? 'Telemetry is out of range right now.' : 'Waiting for the first readings…';
     cards.replaceChildren(empty);
   } else {
     cards.replaceChildren(
       ...rows.map(([k, v]) => {
-        const card = document.createElement('dl');
-        card.className = `card${String(v).length > 17 ? ' wide' : ''}`;
+        const row = document.createElement('div');
+        row.className = 'row';
         const dt = document.createElement('dt');
         const dd = document.createElement('dd');
         dt.textContent = k;
         dd.textContent = v;
-        card.append(dt, dd);
-        return card;
+        row.append(dt, dd);
+        return row;
       }),
     );
   }
@@ -580,7 +504,8 @@ function render() {
   const st = station();
   const d = data();
   renderNowPlaying();
-  rds.set(tickerSegments(st));
+  renderFacts();
+  rds.set(BROADCAST ? tickerSegments(st) : lineSegments(st));
   renderSheet();
   renderSignal();
   if (st.view === 'iss') issView.update(d, st);
@@ -613,10 +538,9 @@ function applyData(st = station()) {
 // Time-driven changes (Mars local time, launch countdown) every 30 s.
 setInterval(() => applyData(), 30e3);
 
-// Oscilloscope and the play button's glow follow the real output.
+// The oscilloscope draws the real output.
 function frame() {
   for (const s of scopes) if (s.canvas.offsetParent) s.draw(state.powered);
-  $('#play').style.setProperty('--level', Math.min(0.6, scopes[0].level * 2).toFixed(3));
   requestAnimationFrame(frame);
 }
 
@@ -858,7 +782,6 @@ function renderQr() {
   $('#qr-code').innerHTML = qrSvg(url, { label: `QR code for ${url}` });
   $('#qr-name').textContent = `${station().name} · ${station().freq} ${station().unit}`.trim();
   $('#qr-url').textContent = prettyUrl(url);
-  $('#qr-dialog .orb').dataset.station = station().id;
 }
 
 async function share() {
@@ -913,7 +836,6 @@ function setCar(on) {
   const was = body.classList.contains('car');
   body.classList.toggle('car', on);
   if (on) setTV(false);
-  starfield.paused = on;
   store.set('car', on);
   keepAwake(on);
   // Car mode hides the view, so don't keep streaming the ISS video behind it.
@@ -997,7 +919,7 @@ function renderBroadcastTicker(force) {
   const items = rows.length ? rows : [[st.name, st.tagline]];
   const track = $('#oa-ticker');
   track.replaceChildren(
-    ...[...items, ['Tune in', prettyUrl(joinUrl(st))], ['Music', 'composed live from this data']].map(([k, v]) => {
+    ...[...items, ['Tune in', prettyUrl(joinUrl(st))], ['Music', source() === 'tracks' && state.nowPlaying ? `${state.nowPlaying.title} · ${state.nowPlaying.artist}` : 'composed live from this data']].map(([k, v]) => {
       const span = document.createElement('span');
       const b = document.createElement('b');
       b.textContent = k;
@@ -1126,7 +1048,6 @@ function bindControls() {
   $('#next').addEventListener('click', () => tune(state.index + 1));
   $('#tune-in').addEventListener('click', () => dismissSplash(true));
   $('#look-only').addEventListener('click', () => dismissSplash(false));
-  $('#np-art').addEventListener('click', () => openSheet(!$('#sheet').classList.contains('open')));
   $('#details-btn').addEventListener('click', () => openSheet(true));
   $('#sheet-close').addEventListener('click', () => openSheet(false));
   $('#scrim').addEventListener('click', () => openSheet(false));
@@ -1134,7 +1055,10 @@ function bindControls() {
   $('#menu-btn').addEventListener('click', openMenu);
   $('#car-exit').addEventListener('click', () => setCar(false));
   $('#dj-toggle').addEventListener('change', (e) => setDJ(e.target.checked));
-  $('#volume').addEventListener('input', (e) => setVolume(Number(e.target.value)));
+  $('#volume').addEventListener('input', (e) => {
+    setVolume(Number(e.target.value));
+    e.target.style.setProperty('--fill', `${state.volume * 100}%`);
+  });
   $('#live-pill').addEventListener('click', () => toast(`Everyone on ${station().name} hears the same music, right now.`));
   for (const b of document.querySelectorAll('[data-source]')) b.addEventListener('click', () => setSource(b.dataset.source));
   for (const d of [menu, qrDialog]) {
@@ -1162,12 +1086,14 @@ function bindControls() {
       menu.close();
     }
   });
-  $('.iss-swap').addEventListener('click', () => {
-    state.issMain = state.issMain === 'camera' ? 'map' : 'camera';
-    store.set('issMain', state.issMain);
-    issView.setMain(state.issMain);
-    render();
-  });
+  for (const b of document.querySelectorAll('[data-iss]')) {
+    b.addEventListener('click', () => {
+      state.issMain = b.dataset.iss;
+      store.set('issMain', state.issMain);
+      issView.setMain(state.issMain);
+      render();
+    });
+  }
 
   addEventListener('hashchange', () => {
     const i = hashIndex();
@@ -1200,22 +1126,9 @@ function bindControls() {
   });
 }
 
-// Keep layout offsets in sync with the real size of the chrome.
-function measureLayout() {
-  const root = document.documentElement.style;
-  const player = $('#player').getBoundingClientRect();
-  const top = $('#topbar').getBoundingClientRect();
-  if (player.height) root.setProperty('--player-h', `${Math.ceil(innerHeight - player.top)}px`);
-  if (top.height) root.setProperty('--top-h', `${Math.ceil(top.bottom)}px`);
-  measureMark();
-  scrollTunerTo(state.index, false);
-}
-new ResizeObserver(measureLayout).observe($('#player'));
-addEventListener('resize', measureLayout);
-
 // ---------------------------------------------------------------- boot
 
-buildTuner();
+buildStations();
 bindControls();
 // Station music becomes available once its catalog loads (it's built at publish time).
 tracks.load().then((ok) => {
@@ -1234,7 +1147,6 @@ if (BROADCAST) {
   renderBroadcastStation();
   startBroadcast();
 }
-measureLayout();
 requestAnimationFrame(frame);
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {

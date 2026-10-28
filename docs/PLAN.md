@@ -15,16 +15,16 @@ Everything below is set up. You can rest; nothing here is urgent.
   - NOAA retired its solar-wind file, so the app now uses NOAA's newer summary.
   - The APOD API returns NASA-logo placeholders instead of pictures. Deep Field skips those and shows Hubble and Webb nebulae and galaxies from NASA's image library instead.
   - Solar Live also shows the solar wind's magnetic field now (a southward field means aurora is more likely).
+  - Perseverance's image feed can't be read by browsers, so the site now publishes a snapshot of it every 3 hours.
+- **Checked on the live site**: a real browser on GitHub's network opens the published site and tunes through every station. The latest results and screenshots are in `reports/live/`; run *Actions → Check the live site* to repeat it.
+- **The interface**: minimal and organised. On phones, the live view sits on top; under it are the station, what's playing, three headline facts and a tab for each station. Tap the facts for everything else. On computers, everything sits in a side panel next to the view.
 - **Publishing is automatic**: every change to the main branch rebuilds the site and publishes it to the `gh-pages` branch. The audio never enters your main history.
 
 ## What's left for you
 
-**At most one click, once.** If the site at **https://gyandeepnath.github.io/Space-Music/** doesn't open yet, GitHub Pages needs switching on:
+**Nothing.** GitHub Pages is on, and the site is live at **https://gyandeepnath.github.io/Space-Music/**. It updates itself whenever the project changes.
 
-1. Open the repository on GitHub → **Settings** → **Pages**.
-2. Under *Build and deployment*, choose **Deploy from a branch**, then branch **gh-pages** and folder **/ (root)**, and press **Save**.
-
-The site appears a minute later. After that it updates itself.
+One thing to know: GitHub pauses scheduled jobs in repositories with no activity for 60 days. If Jezero ever shows old pictures, open *Actions → Refresh feed snapshots* and press *Enable workflow*.
 
 ## When you feel like it (optional, no rush)
 

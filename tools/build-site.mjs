@@ -1,5 +1,6 @@
 // Assembles the publishable site in _site/: the app, plus the station music
-// (via fetch-music.mjs), with absolute link-preview URLs for social apps.
+// (via fetch-music.mjs) and feed snapshots (via fetch-feeds.mjs), with
+// absolute link-preview URLs for social apps.
 // Usage: SITE_URL=https://user.github.io/repo/ node tools/build-site.mjs
 
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -24,4 +25,5 @@ if (siteUrl !== '/') {
 }
 
 execFileSync('node', ['tools/fetch-music.mjs', `${SITE}/music`], { stdio: 'inherit' });
+execFileSync('node', ['tools/fetch-feeds.mjs', SITE], { stdio: 'inherit' });
 console.log(`site assembled in ${SITE}/ for ${siteUrl}`);

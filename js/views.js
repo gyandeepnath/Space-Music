@@ -1,55 +1,9 @@
-// Visual layers: a starfield that is always there, a crossfading slideshow
-// for image stations, the ISS camera + map, the launch countdown, and the
-// oscilloscope that draws the music.
+// Visual layers: a crossfading slideshow for image stations, the ISS camera
+// and map, the launch countdown, and the oscilloscope that draws the music.
 
 import { countdown } from './stations.js';
 
 const NASA_YOUTUBE_CHANNEL = 'UCLA_DiR1FfKNvjuUpBHmylQ';
-
-export class Starfield {
-  constructor(canvas) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.stars = Array.from({ length: 360 }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      r: Math.random() ** 3 * 1.5 + 0.25,
-      tw: Math.random() * Math.PI * 2,
-      speed: 0.3 + Math.random(),
-    }));
-    this.last = 0;
-    const loop = (t) => {
-      if (!document.hidden && !this.paused && t - this.last > 50) {
-        this.last = t;
-        this.draw(t / 1000);
-      }
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-  }
-
-  draw(t) {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const w = Math.round(innerWidth * dpr);
-    const h = Math.round(innerHeight * dpr);
-    if (this.canvas.width !== w || this.canvas.height !== h) {
-      this.canvas.width = w;
-      this.canvas.height = h;
-    }
-    const g = this.ctx;
-    g.clearRect(0, 0, w, h);
-    const drift = t * 0.004;
-    for (const s of this.stars) {
-      const x = ((s.x + drift * s.speed * 0.2) % 1) * w;
-      g.globalAlpha = 0.35 + 0.65 * Math.sin(t * s.speed + s.tw) ** 2;
-      g.fillStyle = s.r > 1.2 ? '#ffe9c4' : '#d4e6ff';
-      g.beginPath();
-      g.arc(x, s.y * h, s.r * dpr, 0, Math.PI * 2);
-      g.fill();
-    }
-    g.globalAlpha = 1;
-  }
-}
 
 // Crossfading slideshow locked to the wall clock: frame = floor(now / interval),
 // so everyone on the same station sees the same picture at the same time.
@@ -256,10 +210,8 @@ export class Scope {
     g.clearRect(0, 0, w, h);
     const wave = active ? this.source(this.buf) : null;
     const color = getComputedStyle(c).color;
-    g.lineWidth = 1.5 * dpr;
+    g.lineWidth = 1.25 * dpr;
     g.strokeStyle = color;
-    g.shadowColor = color;
-    g.shadowBlur = 8 * dpr;
     g.beginPath();
     const mid = h / 2;
     let peak = 0;

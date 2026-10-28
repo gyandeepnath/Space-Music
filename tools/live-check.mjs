@@ -61,7 +61,8 @@ async function run(name, contextOptions) {
         station: sm.STATIONS[sm.state.index].id,
         name: document.querySelector('#np-name')?.textContent,
         line: document.querySelector('#np-line')?.textContent,
-        cards: [...document.querySelectorAll('#cards .card')].map((c) => `${c.querySelector('dt')?.textContent}: ${c.querySelector('dd')?.textContent}`),
+        cards: [...document.querySelectorAll('#cards .row')].map((c) => `${c.querySelector('dt')?.textContent}: ${c.querySelector('dd')?.textContent}`),
+        facts: [...document.querySelectorAll('#facts div')].map((c) => `${c.querySelector('dt')?.textContent}: ${c.querySelector('dd')?.textContent}`),
         signal: document.querySelector('#signal')?.hidden ? null : document.querySelector('#signal')?.textContent,
         source: sm.state.source,
         nowPlaying: sm.state.nowPlaying ? `${sm.state.nowPlaying.title} · ${sm.state.nowPlaying.artist}` : null,
@@ -75,7 +76,8 @@ async function run(name, contextOptions) {
     console.log(`${name}: ${s.station} checked`);
     await page.screenshot({ path: join(out, `${name}-${s.station}.jpg`), quality: 70 });
   }
-  await page.click('#details-btn').catch(() => {});
+  // Phones open the details sheet; computers show it in the side panel already.
+  if (await page.isVisible('#details-btn')) await page.click('#details-btn');
   await sleep(900);
   await page.screenshot({ path: join(out, `${name}-sheet.jpg`), quality: 70 });
   await context.close();

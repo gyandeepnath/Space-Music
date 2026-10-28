@@ -25,20 +25,20 @@ Each station maps live (or live-computed) data onto the music. That's what makes
 
 | Preset | Dial | Station | Live view | Live data | What the data does to the music |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **408** km (ISS altitude) | **ISS Live** | NASA's ISS camera, plus a map with the ground track and day/night line | Position, altitude, speed, sunlight vs Earth's shadow | Orbital sunrise switches to a bright lydian key, Earth's shadow to a darker dorian one, about 16 times a day. Higher latitudes bring more "wind" |
+| 1 | **408** km (ISS altitude) | **ISS Live** | A live map with the ground track and day/night line, or NASA's ISS camera | Position, altitude, speed, sunlight vs Earth's shadow | Orbital sunrise switches to a bright lydian key, Earth's shadow to a darker dorian one, about 16 times a day. Higher latitudes bring more "wind" |
 | 2 | **1.5** M km (to L1) | **Blue Marble** | NASA EPIC's full-disk Earth images from DSCOVR | Longitude at the centre of each frame | The chord follows the longitude, so the harmony turns with the planet |
 | 3 | **193** Å (SDO channel) | **Solar Live** | SDO's Sun in six wavelengths | Solar wind speed and density, Kp index (NOAA) | Wind speed makes it busier and brighter, density sets the noise, Kp sets the tension. A geomagnetic storm (Kp ≥ 5) switches to a whole-tone scale |
 | 4 | **225** M km (to Mars) | **Jezero** | Perseverance's latest raw images | Mission sol, local time at Jezero, Earth–Mars distance and signal delay (computed) | Mars daytime is brighter. Afternoons are windier, matching the dust-devil peak |
 | 5 | **13.8** Gyr (age of the universe) | **Deep Field** | Astronomy Picture of the Day, plus the archive | Today's date | The key and melody are seeded by the date, so there's a new piece every day |
 | 6 | **T-0** | **Launch Pad** | Countdown to the next launch anywhere on Earth | Upcoming launches (Launch Library 2) | It gets busier over the last 48 hours, and the "telemetry blips" speed up towards liftoff |
 
-**The radio around it:** swipe between stations, or drag a tuning ruler with real static between the stations. The player's text steps through live facts, like RDS on a car radio, and an oscilloscope draws the actual music. There's also a **Space DJ**. The DJ uses the device's own text-to-speech to read live facts between the music, for example: *"The crew is moving at 27,600 kilometres an hour, over Kazakhstan, where it's 4:12 pm. Orbital sunset in about 11 minutes."* The music ducks while it talks, and each sentence is subtitled as it's spoken.
+**The radio around it:** swipe between stations or tap a station tab. Three headline facts sit under the station name, the line under it steps through the rest like RDS on a car radio, and a thin oscilloscope draws the actual music. There's also a **Space DJ**. The DJ uses the device's own text-to-speech to read live facts between the music, for example: *"The crew is moving at 27,600 kilometres an hour, over Kazakhstan, where it's 4:12 pm. Orbital sunset in about 11 minutes."* The music ducks while it talks, and each sentence is subtitled as it's spoken.
 
 ## 3. Ways to use it
 
 | Mode | Where | The screen | The sound |
 | --- | --- | --- | --- |
-| **Phone and web** (primary) | Phone, laptop, headphones | Full-bleed live view: swipe between stations, a tuning ruler, live data in a sheet | Station music or the live composition, with the DJ between the music |
+| **Phone and web** (primary) | Phone, laptop, headphones | The live view on top, a compact player under it with headline facts and station tabs, everything else in a sheet (a side panel on computers) | Station music or the live composition, with the DJ between the music |
 | **Broadcast** | YouTube Live, Twitch, TikTok, Instagram, YouTube Shorts | An on-air layout with a QR code to tune in, 16:9 or vertical | The same live composition, so viewers can join on their phones |
 | **TV** | TV, desktop second screen | Full screen; the controls fade away | Ambient, always on |
 | **Car** | Phone in a dash mount (later: CarPlay / Android Auto) | Six big presets. **Nothing moves** | Primary: steering-wheel next/previous changes station |
@@ -108,7 +108,7 @@ What would need a small backend (none of it is built):
 - **Live sources are flaky by nature.** The ISS camera is dark for about a third of each orbit and has loss-of-signal gaps. The prototype answers this with the map, the "in Earth's shadow, sunrise in N min" overlay and an honest "no signal" state, never fake data.
 - **Rate limits:** NASA's DEMO_KEY allows about 30 requests an hour per IP, and Launch Library about 15 an hour. Fine for one person; real users need a small caching backend, or the server-broadcast design above.
 - **Licensing:** NASA imagery is generally free to use, but **APOD images are often copyrighted by their photographers** (credits are shown; commercial use needs permission). Don't use NASA logos in a way that implies endorsement. SomaFM's terms need checking for commercial use. The station music is CC BY or public domain, and its credits are generated automatically.
-- **Endpoint churn:** NOAA reformatted several JSON feeds in March 2026 (the prototype parses both formats). The Perseverance raw-image feed is a public website API rather than a formal one. YouTube live IDs change; the prototype embeds NASA's channel by default and lets you paste a specific stream.
+- **Endpoint churn:** NOAA reformatted several JSON feeds in March 2026 (the prototype parses both formats). The Perseverance raw-image feed is a public website API rather than a formal one, and it sends no CORS header, so the site publishes a snapshot of it every 3 hours. YouTube live IDs change; the prototype embeds NASA's channel by default and lets you paste a specific stream.
 - **Driver distraction:** car mode must stay audio-first; native car platforms enforce this anyway.
 
 ## 10. Decisions for you

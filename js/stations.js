@@ -34,6 +34,15 @@ const int = (v) => Math.round(v).toLocaleString('en-US');
 const fmtLat = (v) => `${Math.abs(v).toFixed(1)}°${v >= 0 ? 'N' : 'S'}`;
 const fmtLon = (v) => `${Math.abs(v).toFixed(1)}°${v >= 0 ? 'E' : 'W'}`;
 
+// "40 min ago", "5 h ago", "2 days ago"
+function age(iso, now) {
+  const min = (now - Date.parse(iso)) / 60e3;
+  if (!Number.isFinite(min)) return null;
+  if (min < 90) return `${Math.max(1, Math.round(min))} min ago`;
+  if (min < 48 * 60) return `${Math.round(min / 60)} h ago`;
+  return `${Math.round(min / 1440)} days ago`;
+}
+
 function regionName(code) {
   try {
     return new Intl.DisplayNames(['en'], { type: 'region' }).of(code.toUpperCase());
@@ -100,6 +109,7 @@ const iss = {
   freq: '408',
   unit: 'km',
   name: 'ISS Live',
+  short: 'ISS',
   tagline: 'International Space Station · live from low Earth orbit',
   about:
     'A live camera on the International Space Station, about 400 km up, and a map of where it is right now. The station circles Earth every 93 minutes, so for a third of each orbit the camera looks into night.',
@@ -176,6 +186,18 @@ const iss = {
     return rows;
   },
 
+  // Up to three headline facts, shown under the station name.
+  facts(d) {
+    if (!d.fix) return [];
+    const t = d.terminator;
+    const place = issPlace(d);
+    return [
+      ['Over', place ? place.replace(/^the /, '').replace(/^./, (c) => c.toUpperCase()) : '…'],
+      ['Speed', `${int(d.fix.velocity)} km/h`],
+      t?.minutes ? [`Orbital ${t.event}`, `in ${Math.round(t.minutes)} min`] : ['Altitude', `${d.fix.alt.toFixed(0)} km`],
+    ];
+  },
+
   ticker(d) {
     if (!d.fix) return 'Acquiring ISS telemetry';
     const f = d.fix;
@@ -231,6 +253,7 @@ const earth = {
   freq: '1.5',
   unit: 'M km',
   name: 'Blue Marble',
+  short: 'Earth',
   tagline: 'The whole sunlit Earth, from NASA’s EPIC camera at L1',
   about:
     'The whole sunlit face of Earth, photographed by NASA’s EPIC camera on the DSCOVR spacecraft, 1.5 million km away. Every frame is a real photo from the latest day.',
@@ -277,6 +300,15 @@ const earth = {
     return rows;
   },
 
+  facts(d, now, slide) {
+    if (!d.items?.length) return [];
+    return [
+      Number.isFinite(slide?.lat) && ['Centred on', `${fmtLat(slide.lat)} ${fmtLon(slide.lon)}`],
+      slide?.time && ['Taken', age(slide.time, now)],
+      ['Distance', '1.5 million km'],
+    ].filter((f) => f && f[1]);
+  },
+
   ticker(d, now, slide) {
     if (!d.items?.length) return 'Waiting for DSCOVR';
     const parts = ['The whole Earth, from L1', `${d.items.length} photos from the latest day`];
@@ -309,6 +341,7 @@ const sun = {
   freq: '193',
   unit: 'Å',
   name: 'Solar Live',
+  short: 'Sun',
   tagline: 'The Sun right now, from NASA SDO · space weather from NOAA',
   about:
     'The Sun as NASA’s Solar Dynamics Observatory saw it minutes ago, cycling through six wavelengths of light that each show plasma at a different temperature.',
@@ -372,6 +405,17 @@ const sun = {
     return rows;
   },
 
+  facts(d) {
+    const w = d.weather?.wind;
+    const kp = d.weather?.kp?.value;
+    const bz = d.weather?.mag?.bz;
+    return [
+      w && ['Solar wind', `${int(w.speed)} km/s`],
+      Number.isFinite(kp) && ['Kp index', `${kp.toFixed(1)} ${stormLevel(kp)}`],
+      Number.isFinite(bz) && ['Field Bz', `${bz > 0 ? '+' : ''}${bz} nT`],
+    ].filter(Boolean);
+  },
+
   ticker(d, now, slide) {
     const parts = [];
     const w = d.weather?.wind;
@@ -429,6 +473,7 @@ const mars = {
   freq: '225',
   unit: 'M km',
   name: 'Jezero',
+  short: 'Mars',
   tagline: 'Perseverance rover · latest raw images from Mars',
   about:
     'The latest raw images from NASA’s Perseverance rover in Jezero Crater, straight from its cameras. The clock is the local time on Mars where the rover is.',
@@ -450,8 +495,8 @@ const mars = {
     reverb: 0.75,
   },
 
-  async refresh(prev, settings) {
-    return { ...prev, items: await marsImages(settings.nasaKey) };
+  async refresh(prev) {
+    return { ...prev, items: await marsImages() };
   },
 
   hasSignal: (d) => !!d.items?.length,
@@ -484,6 +529,15 @@ const mars = {
     if (slide?.camera) rows.push(['Camera', slide.camera]);
     if (slide?.sol != null) rows.push(['Image sol', `${slide.sol}`]);
     return rows;
+  },
+
+  facts(d, now) {
+    const m = marsFacts(now);
+    return [
+      ['Jezero time', `${m.clock.label} ${m.daylight ? '☀' : '☾'}`],
+      ['Mission sol', `${m.clock.sol}`],
+      ['Signal delay', `${Math.round(m.dist.lightSeconds / 60)} min`],
+    ];
   },
 
   ticker(d, now) {
@@ -529,6 +583,7 @@ const deep = {
   freq: '13.8',
   unit: 'Gyr',
   name: 'Deep Field',
+  short: 'Deep',
   tagline: 'Astronomy Picture of the Day, and NASA’s telescope archive',
   about: 'NASA’s Astronomy Picture of the Day and the days before it: galaxies, nebulae, eclipses, and the occasional rocket.',
   sound: 'Slow, spacious music, including Holst conducting his own The Planets in 1922. In live composition, today’s date seeds a new piece.',
@@ -572,6 +627,17 @@ const deep = {
     return rows;
   },
 
+  facts(d, now, slide) {
+    if (!slide) return [];
+    const title = slide.title || slide.caption?.split(' · ')[0];
+    const date = slide.date || slide.time?.slice(0, 10);
+    return [
+      title && ['On screen', title],
+      date && ['Date', date],
+      ['Source', slide.archive ? 'NASA archive' : 'APOD'],
+    ].filter(Boolean);
+  },
+
   ticker(d, now, slide) {
     if (!d.items?.length) return 'Scanning the deep sky';
     if (slide?.title) return [slide.title, slide.date === d.today?.date ? 'Today’s picture' : `APOD ${slide.date}`].join(' · ');
@@ -606,6 +672,7 @@ const launch = {
   freq: 'T-0',
   unit: '',
   name: 'Launch Pad',
+  short: 'Launch',
   tagline: 'The next rocket launch on Earth, counting down',
   about: 'A live countdown to the next rocket launch anywhere on Earth, with what’s coming after it.',
   sound: 'Calm while the next launch is far off. Once it’s less than a day away the music builds, and the telemetry blips speed up towards liftoff.',
@@ -656,6 +723,16 @@ const launch = {
       ['From', n.location],
       ['Status', n.statusName || n.status],
       ['NET', new Date(n.net).toUTCString().replace('GMT', 'UTC')],
+    ].filter(([, v]) => v);
+  },
+
+  facts(d, now) {
+    const n = nextLaunch(d, now);
+    if (!n) return [];
+    return [
+      ['Mission', n.mission],
+      ['Rocket', n.rocket],
+      ['Status', n.status === 'Go' ? 'Go for launch' : n.statusName || n.status],
     ].filter(([, v]) => v);
   },
 

@@ -2,12 +2,9 @@
 # commits what it found (summary and screenshots) to reports/live/.
 name: Check the live site
 
+# Run it from Actions → Check the live site (after a publish has gone live).
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - tools/live-check.mjs
-      - .github/workflows/live-check.yml
 
 permissions:
   contents: write

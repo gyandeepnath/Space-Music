@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#04060b" />
+    <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark" />
     <title>Space Music</title>
-    <meta name="description" content="Live radio from the solar system: real-time views of space, with music composed from what you're seeing. Everyone on a station hears the same music." />
+    <meta name="description" content="Live radio from the solar system: real-time views of space, with music picked by the live data. Everyone on a station hears the same music." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Space Music" />
     <meta property="og:title" content="Space Music · live radio from the solar system" />
-    <meta property="og:description" content="Live views of the ISS, Earth, the Sun and Mars, with music composed from the live data. Tune in together." />
+    <meta property="og:description" content="Live views of the ISS, Earth, the Sun and Mars, with music picked by the live data. Tune in together." />
     <meta property="og:image" content="og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -46,29 +46,37 @@
       <symbol id="i-sync" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="12" r="3.2" /><circle cx="16" cy="12" r="3.2" /></g></symbol>
     </svg>
 
-    <main id="stage" aria-label="Live view">
-      <canvas id="stars" aria-hidden="true"></canvas>
-      <div class="stage-orb" aria-hidden="true"><div class="orb orb-xl"></div></div>
+    <header id="topbar">
+      <a class="brand" href="./" aria-label="Space Music home">Space Music</a>
+      <button id="live-pill" class="live" type="button" title="Everyone on this station hears the same music, right now"><i></i>Live</button>
+      <span class="spacer"></span>
+      <button id="share-btn" class="icon-btn" type="button" aria-label="Share this station"><svg><use href="#i-share" /></svg></button>
+      <button id="menu-btn" class="icon-btn" type="button" aria-label="Menu"><svg><use href="#i-more" /></svg></button>
+    </header>
 
+    <main id="stage" aria-label="Live view">
       <section id="view-slides" class="view" hidden>
         <img class="slide" alt="" decoding="async" draggable="false" />
         <img class="slide" alt="" decoding="async" draggable="false" />
         <p class="caption"></p>
       </section>
 
-      <section id="view-iss" class="view" hidden data-main="camera">
+      <section id="view-iss" class="view" hidden data-main="map">
         <div class="iss-camera">
           <iframe title="ISS live camera" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" tabindex="-1"></iframe>
         </div>
         <canvas class="iss-map" aria-label="Map of the ISS position and ground track"></canvas>
-        <p class="iss-shadow chip" hidden></p>
-        <button class="iss-swap chip" type="button"><svg><use href="#i-swap" /></svg><span>Map</span></button>
+        <p class="iss-shadow" hidden></p>
+        <div class="iss-toggle seg seg-sm" role="group" aria-label="ISS view">
+          <button type="button" data-iss="map">Map</button>
+          <button type="button" data-iss="camera">Camera</button>
+        </div>
       </section>
 
       <section id="view-launch" class="view" hidden>
         <div class="launch-bg" data-launch="bg"></div>
         <div class="launch-card">
-          <p class="eyebrow">Next launch</p>
+          <p class="label">Next launch</p>
           <h2 data-launch="mission"></h2>
           <p class="launch-rocket" data-launch="rocket"></p>
           <p class="launch-clock"><span class="launch-sign" data-launch="sign"></span><span data-launch="clock"></span></p>
@@ -78,50 +86,31 @@
       </section>
 
       <p id="signal" class="signal" hidden><span class="signal-dot"></span><span class="signal-text"></span></p>
+      <p id="caption" class="subtitle" aria-live="polite" hidden><span class="caption-tag">DJ</span><span class="caption-text"></span></p>
     </main>
 
-    <header id="topbar">
-      <a class="brand" href="./" aria-label="Space Music home">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-name">Space Music</span>
-      </a>
-      <span class="live-pill" id="live-pill" title="Everyone on this station hears the same music, right now"><i></i>Live</span>
-      <span class="spacer"></span>
-      <button id="share-btn" class="icon-btn glass" type="button" aria-label="Share this station"><svg><use href="#i-share" /></svg></button>
-      <button id="menu-btn" class="icon-btn glass" type="button" aria-label="Menu"><svg><use href="#i-more" /></svg></button>
-    </header>
-
-    <p id="caption" class="caption-dj" aria-live="polite" hidden><span class="caption-tag">DJ</span><span class="caption-text"></span></p>
-
     <section id="player" aria-label="Player">
-      <canvas id="scope" class="scope" aria-hidden="true"></canvas>
       <div class="np">
-        <button id="np-art" class="np-art orb" type="button" aria-label="Station details"></button>
         <div class="np-text">
-          <p class="np-meta"><span class="np-freq" id="np-freq"></span><span class="np-unit" id="np-unit"></span></p>
+          <p class="np-meta"><span class="np-freq" id="np-freq"></span> <span class="np-unit" id="np-unit"></span></p>
           <h1 class="np-name" id="np-name"></h1>
           <p class="np-line" id="np-line"></p>
         </div>
         <button id="play" class="play-btn" type="button" aria-label="Tune in" aria-pressed="false">
           <svg class="ic-play"><use href="#i-play" /></svg><svg class="ic-pause"><use href="#i-pause" /></svg>
-          <span class="play-ring" aria-hidden="true"></span>
         </button>
       </div>
-      <div class="tuner-row">
-        <button id="prev" class="icon-btn" type="button" aria-label="Previous station"><svg><use href="#i-prev" /></svg></button>
-        <div class="tuner-wrap">
-          <div id="tuner" class="tuner" tabindex="0" role="slider" aria-label="Tuning dial" aria-valuemin="1">
-            <div class="tuner-track" id="tuner-track"></div>
-          </div>
-          <span class="tuner-needle" aria-hidden="true"></span>
-        </div>
-        <button id="next" class="icon-btn" type="button" aria-label="Next station"><svg><use href="#i-next" /></svg></button>
-      </div>
-      <div id="presets" class="presets" role="group" aria-label="Station presets"></div>
-      <div class="player-foot">
-        <button id="details-btn" class="details-btn" type="button" aria-controls="sheet" aria-expanded="false"><svg><use href="#i-up" /></svg>Live data</button>
-        <label class="vol" title="Volume"><svg><use href="#i-volume" /></svg><span class="sr">Volume</span><input id="volume" type="range" min="0" max="1" step="0.01" /></label>
-        <button id="car-exit" class="pill-btn" type="button">Exit car mode</button>
+      <p class="np-track" id="np-track"></p>
+      <canvas id="scope" class="scope" aria-hidden="true"></canvas>
+      <button id="details-btn" class="facts" type="button" aria-controls="sheet" aria-expanded="false">
+        <dl id="facts"></dl>
+        <span class="facts-more"><svg><use href="#i-up" /></svg><span class="sr">All live data and settings</span></span>
+      </button>
+      <nav id="stations" class="stations" aria-label="Stations"></nav>
+      <div class="car-controls">
+        <button id="prev" class="car-btn" type="button" aria-label="Previous station"><svg><use href="#i-prev" /></svg></button>
+        <button id="next" class="car-btn" type="button" aria-label="Next station"><svg><use href="#i-next" /></svg></button>
+        <button id="car-exit" class="btn" type="button">Exit car mode</button>
       </div>
     </section>
 
@@ -131,54 +120,60 @@
       <div class="sheet-head">
         <span class="grabber" aria-hidden="true"></span>
         <div class="sheet-title">
-          <div class="orb orb-sm" aria-hidden="true"></div>
           <div>
-            <p class="eyebrow" id="sheet-eyebrow"></p>
+            <p class="label" id="sheet-eyebrow"></p>
             <h2 id="sheet-name"></h2>
           </div>
           <button id="sheet-close" class="icon-btn" type="button" aria-label="Close"><svg><use href="#i-close" /></svg></button>
         </div>
       </div>
       <div class="sheet-body">
-        <p class="status" id="status"></p>
-        <div class="cards" id="cards"></div>
-
-        <section class="block">
-          <h3>Listening</h3>
-          <div class="seg seg-3" role="group" aria-label="Music source">
-            <button type="button" data-source="tracks"><b>Station music</b><small>Picked by the live data</small></button>
-            <button type="button" data-source="gen"><b>Live composition</b><small>Made from the data</small></button>
-            <button type="button" data-source="fm"><b>SomaFM</b><small>Space radio</small></button>
+        <section class="group">
+          <div class="group-head">
+            <h3>Live data</h3>
+            <p class="status" id="status"></p>
           </div>
-          <label class="switch-row">
-            <span><b>Space DJ</b><small>Reads live facts between the music</small></span>
-            <input type="checkbox" id="dj-toggle" role="switch" />
-          </label>
+          <dl class="rows" id="cards"></dl>
+        </section>
+
+        <section class="group">
+          <div class="group-head"><h3>Music</h3></div>
+          <div class="seg" role="group" aria-label="Music source">
+            <button type="button" data-source="tracks">Station music</button>
+            <button type="button" data-source="gen">Live composition</button>
+            <button type="button" data-source="fm">SomaFM</button>
+          </div>
           <p class="music-note" id="music-note"></p>
-        </section>
-
-        <section class="block">
-          <h3>How it sounds</h3>
-          <p id="sound-text"></p>
-        </section>
-
-        <section class="block">
-          <h3>What you’re seeing</h3>
-          <p id="about-text"></p>
-          <p class="fine" id="on-screen"></p>
-        </section>
-
-        <section class="block">
-          <h3>Tune in together</h3>
-          <p>Everyone on this station hears the same music at the same moment. Send someone the link and they’ll join you mid-song.</p>
-          <div class="btn-row">
-            <button class="pill-btn accent" type="button" data-action="share"><svg><use href="#i-share" /></svg>Share link</button>
-            <button class="pill-btn" type="button" data-action="qr"><svg><use href="#i-qr" /></svg>Show QR code</button>
+          <div class="rows">
+            <label class="row">
+              <span class="row-text">Space DJ<small>Reads live facts between the music</small></span>
+              <input type="checkbox" id="dj-toggle" class="switch" role="switch" />
+            </label>
+            <label class="row vol-row">
+              <span class="row-text">Volume</span>
+              <input id="volume" type="range" min="0" max="1" step="0.01" />
+            </label>
           </div>
         </section>
 
-        <section class="block" id="log-block" hidden>
-          <h3>On air</h3>
+        <section class="group">
+          <div class="group-head"><h3>Listen together</h3></div>
+          <p class="note">Everyone on this station hears the same music at the same moment. Send the link and they’ll join you mid-song.</p>
+          <div class="btn-row">
+            <button class="btn btn-primary" type="button" data-action="share"><svg><use href="#i-share" /></svg>Share link</button>
+            <button class="btn" type="button" data-action="qr"><svg><use href="#i-qr" /></svg>QR code</button>
+          </div>
+        </section>
+
+        <section class="group">
+          <div class="group-head"><h3>About this station</h3></div>
+          <p class="note" id="about-text"></p>
+          <p class="note" id="sound-text"></p>
+          <p class="note fine" id="on-screen"></p>
+        </section>
+
+        <section class="group" id="log-block" hidden>
+          <div class="group-head"><h3>Space DJ</h3></div>
           <ol class="log" id="log"></ol>
         </section>
       </div>
@@ -186,14 +181,13 @@
 
     <div id="splash" class="splash" role="dialog" aria-modal="true" aria-labelledby="splash-title">
       <div class="splash-inner">
-        <div class="splash-orb" aria-hidden="true"><div class="orb orb-hero"></div></div>
-        <p class="eyebrow" id="splash-eyebrow">Now on air</p>
+        <p class="label" id="splash-eyebrow">Now on air</p>
         <h1 id="splash-title" class="wordmark">Space Music</h1>
-        <p class="splash-tag">Live views of space, with music composed from what you’re seeing.</p>
+        <p class="splash-tag">Live views of space, with music picked by what’s happening up there.</p>
         <p class="splash-station"><span class="np-freq" id="splash-freq"></span><span id="splash-name"></span></p>
-        <button id="tune-in" class="btn-primary" type="button"><svg><use href="#i-play" /></svg>Tune in</button>
-        <button id="look-only" class="btn-text" type="button">Just look around</button>
-        <p class="splash-note"><svg><use href="#i-headphones" /></svg>Best with headphones · Everyone on a station hears the same music</p>
+        <button id="tune-in" class="btn btn-primary btn-lg" type="button"><svg><use href="#i-play" /></svg>Tune in</button>
+        <button id="look-only" class="btn btn-quiet" type="button">Just look around</button>
+        <p class="splash-note"><svg><use href="#i-headphones" /></svg>Everyone on a station hears the same music</p>
       </div>
     </div>
 
@@ -202,15 +196,15 @@
         <h2>Space Music</h2>
         <button class="icon-btn" type="button" data-close aria-label="Close"><svg><use href="#i-close" /></svg></button>
       </div>
-      <nav class="menu-list">
+      <nav class="list">
         <button type="button" data-action="tv"><svg><use href="#i-tv" /></svg><span><b>TV mode</b><small>Full screen; the controls fade away</small></span></button>
         <button type="button" data-action="car"><svg><use href="#i-car" /></svg><span><b>Car mode</b><small>Big buttons, nothing moving on screen</small></span></button>
-        <button type="button" data-action="qr"><svg><use href="#i-qr" /></svg><span><b>Show join code</b><small>People nearby scan it to tune in with you</small></span></button>
+        <button type="button" data-action="qr"><svg><use href="#i-qr" /></svg><span><b>Join code</b><small>People nearby scan it to tune in with you</small></span></button>
         <a href="?broadcast" target="_blank" rel="noopener" data-action="broadcast"><svg><use href="#i-broadcast" /></svg><span><b>Go live</b><small>A broadcast layout for YouTube, Twitch, TikTok and Instagram</small></span></a>
         <button type="button" data-action="install" hidden><svg><use href="#i-download" /></svg><span><b>Install app</b><small>Add Space Music to your home screen</small></span></button>
       </nav>
-      <details class="menu-more">
-        <summary><svg><use href="#i-sliders" /></svg>Settings</summary>
+      <details class="disclosure">
+        <summary>Settings</summary>
         <form id="settings-form" class="settings">
           <label>NASA API key
             <input name="nasaKey" autocomplete="off" spellcheck="false" placeholder="DEMO_KEY" />
@@ -231,26 +225,34 @@
               </select>
             </label>
           </div>
-          <button class="pill-btn accent" type="submit">Save settings</button>
+          <button class="btn btn-primary" type="submit">Save settings</button>
         </form>
       </details>
-      <details class="menu-more">
-        <summary><svg><use href="#i-sliders" /></svg>Keyboard shortcuts</summary>
-        <p class="keys"><kbd>Space</kbd> play/pause · <kbd>1</kbd>–<kbd>6</kbd> stations · <kbd>←</kbd> <kbd>→</kbd> tune · <kbd>I</kbd> live data · <kbd>M</kbd> music source (station music, live composition, SomaFM) · <kbd>D</kbd> DJ · <kbd>T</kbd> TV mode · <kbd>C</kbd> car mode · <kbd>S</kbd> share</p>
+      <details class="disclosure">
+        <summary>Keyboard shortcuts</summary>
+        <dl class="keys">
+          <div><dt><kbd>Space</kbd></dt><dd>Play or pause</dd></div>
+          <div><dt><kbd>1</kbd>–<kbd>6</kbd> <kbd>←</kbd> <kbd>→</kbd></dt><dd>Change station</dd></div>
+          <div><dt><kbd>I</kbd></dt><dd>Live data</dd></div>
+          <div><dt><kbd>M</kbd></dt><dd>Music source</dd></div>
+          <div><dt><kbd>D</kbd></dt><dd>Space DJ</dd></div>
+          <div><dt><kbd>T</kbd> <kbd>C</kbd></dt><dd>TV mode, car mode</dd></div>
+          <div><dt><kbd>S</kbd></dt><dd>Share</dd></div>
+        </dl>
       </details>
-      <details class="menu-more">
-        <summary><svg><use href="#i-sliders" /></svg>Music credits</summary>
-        <p class="keys">Station music: Kevin MacLeod (incompetech.com, CC BY 4.0) and Gustav Holst conducting The Planets with the London Symphony Orchestra, 1922–24 (public domain).</p>
+      <details class="disclosure">
+        <summary>Music credits</summary>
+        <p class="note">Kevin MacLeod (incompetech.com), licensed under CC BY 4.0, and Gustav Holst conducting <i>The Planets</i> with the London Symphony Orchestra, 1922–24 (public domain).</p>
         <ul class="credits" id="music-credits"></ul>
       </details>
-      <details class="menu-more">
-        <summary><svg><use href="#i-sliders" /></svg>Credits and data sources</summary>
+      <details class="disclosure">
+        <summary>Data sources</summary>
         <ul class="credits">
           <li>ISS position: <a href="https://wheretheiss.at" target="_blank" rel="noopener">wheretheiss.at</a>; camera: NASA’s live stream on YouTube</li>
           <li>Earth: NASA EPIC on NOAA’s DSCOVR</li>
           <li>Sun: NASA Solar Dynamics Observatory; space weather: NOAA SWPC</li>
           <li>Mars: Perseverance raw images, NASA/JPL-Caltech</li>
-          <li>Deep Field: NASA Astronomy Picture of the Day (image credits as shown)</li>
+          <li>Deep Field: NASA Astronomy Picture of the Day and NASA’s image library (credits as shown)</li>
           <li>Launches: <a href="https://thespacedevs.com" target="_blank" rel="noopener">The Space Devs</a> Launch Library 2</li>
           <li>Radio: <a href="https://somafm.com" target="_blank" rel="noopener">SomaFM</a>, listener-supported</li>
           <li>Map: Natural Earth (public domain)</li>
@@ -265,23 +267,20 @@
       </div>
       <div class="qr-card">
         <div class="qr-code" id="qr-code"></div>
-        <p class="qr-station"><span class="orb orb-xs" aria-hidden="true"></span><span id="qr-name"></span></p>
+        <p class="qr-station" id="qr-name"></p>
         <p class="qr-url" id="qr-url"></p>
       </div>
-      <p class="fine center">Scan with a phone camera. You’ll both hear the same music, in sync.</p>
-      <div class="btn-row center">
-        <button class="pill-btn accent" type="button" data-action="copy"><svg><use href="#i-link" /></svg>Copy link</button>
-      </div>
+      <p class="note center">Scan with a phone camera. You’ll both hear the same music, in sync.</p>
+      <button class="btn btn-primary btn-block" type="button" data-action="copy"><svg><use href="#i-link" /></svg>Copy link</button>
     </dialog>
 
-    <div id="onair" hidden>
+    <div id="onair">
       <div class="oa-bug">
-        <span class="brand-mark" aria-hidden="true"></span><b>Space Music</b>
+        <b>Space Music</b>
         <span class="oa-live"><i></i>Live</span>
         <span class="oa-clock" id="oa-clock"></span>
       </div>
       <div class="oa-third">
-        <div class="orb oa-orb" aria-hidden="true"></div>
         <div class="oa-text">
           <p class="oa-meta"><span class="np-freq" id="oa-freq"></span><span id="oa-unit"></span><span id="oa-tagline"></span></p>
           <h2 id="oa-name"></h2>

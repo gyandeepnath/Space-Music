@@ -36,9 +36,14 @@ const TYPES = {
 };
 
 // `music`: a directory to serve /music/ from (the real music is built at publish time).
-export async function startServer({ music } = {}) {
+// `files` maps paths to generated content, like the feed snapshots publishing adds.
+export async function startServer({ music, files = {} } = {}) {
   const server = createServer(async (req, res) => {
     const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
+    if (files[path]) {
+      res.writeHead(200, { 'content-type': TYPES[extname(path)] || 'text/plain' }).end(files[path]);
+      return;
+    }
     const base = music && path.startsWith('/music/') ? music : root;
     const rel = base === root ? path : path.slice('/music'.length);
     const file = join(base, rel.endsWith('/') ? `${rel}index.html` : rel);
@@ -141,10 +146,6 @@ export function routeFixture(url) {
     if (u.pathname.includes('plasma')) return json([['time_tag', 'density', 'speed', 'temperature'], ['2026-10-28 08:50:00.000', '4.21', '462.5', '91234'], ['2026-10-28 08:55:00.000', '4.05', '458.1', '90011']]);
     if (u.pathname.includes('planetary_k_index_1m')) return json([{ time_tag: '2026-10-28T08:54:00', kp_index: 2, estimated_kp: 2.33, kp: '2P' }, { time_tag: '2026-10-28T08:55:00', kp_index: 3, estimated_kp: 2.67, kp: '3M' }]);
   }
-  if (host === 'mars.nasa.gov' && u.pathname.startsWith('/rss/api')) {
-    const cams = ['NAVCAM_LEFT', 'MCZ_RIGHT', 'FRONT_HAZCAM_LEFT_A', 'SHERLOC_WATSON', 'MCZ_LEFT', 'NAVCAM_RIGHT', 'REAR_HAZCAM_RIGHT'];
-    return json({ images: cams.map((c, i) => ({ image_files: { large: `https://mars.nasa.gov/mars2020-raw-images/test/${c}_${i}.png`, medium: `https://mars.nasa.gov/mars2020-raw-images/test/${c}_${i}_m.png` }, sol: 1660 - (i % 2), camera: { instrument: c }, date_taken_utc: iso(t0 - i * 3600e3) })) });
-  }
   if (host === 'api.nasa.gov' && u.pathname.includes('apod')) {
     const item = (d, title) => ({ date: d, title, explanation: `${title} is a fixture explanation used by the smoke test. It has a second sentence. And a third one that is a little longer than the others.`, url: `https://apod.nasa.gov/apod/image/test/${encodeURIComponent(title)}.jpg`, media_type: 'image', copyright: 'Test Photographer' });
     const days = Array.from({ length: 8 }, (_, i) => new Date(t0 - (7 - i) * 86400e3).toISOString().slice(0, 10));
@@ -174,6 +175,15 @@ export async function routeContext(context) {
     const res = routeFixture(r.request().url());
     if (res) await r.fulfill(res);
     else await r.abort('internetdisconnected');
+  });
+}
+
+// The Perseverance snapshot that publishing writes to data/mars.json (tools/fetch-feeds.mjs).
+export function marsSnapshot() {
+  const cams = ['NAVCAM_LEFT', 'MCZ_RIGHT', 'FRONT_HAZCAM_LEFT_A', 'SHERLOC_WATSON', 'MCZ_LEFT', 'NAVCAM_RIGHT', 'REAR_HAZCAM_RIGHT'];
+  return JSON.stringify({
+    fetchedAt: iso(t0),
+    images: cams.map((c, i) => ({ image_files: { large: `https://mars.nasa.gov/mars2020-raw-images/test/${c}_${i}.png`, medium: `https://mars.nasa.gov/mars2020-raw-images/test/${c}_${i}_m.png` }, sol: 1660 - (i % 2), camera: { instrument: c }, date_taken_utc: iso(t0 - i * 3600e3) })),
   });
 }
 

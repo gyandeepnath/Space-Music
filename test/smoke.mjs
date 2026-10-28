@@ -1,8 +1,9 @@
 // Browser smoke test: serves the app, answers every external API with fixtures
 // shaped like that API's documented responses (test/fixtures.mjs), and drives
-// the real UI: splash, all six stations, the music engine, two listeners in
-// sync, swiping and the tuner, the sheet, sharing and QR, settings, TV and car
-// modes, a phone viewport, and the 16:9 and vertical broadcast layouts.
+// the real UI: splash, all six stations, the music, two listeners in sync,
+// swiping and the station tabs, the details sheet, sharing and QR, settings,
+// TV and car modes, a phone viewport, and the 16:9 and vertical broadcast
+// layouts.
 // Screenshots go to test/screenshots/.
 //
 // Fixtures are test data, not live readings. Run with: npm run smoke
@@ -10,12 +11,12 @@
 
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { startServer, routeContext, loadChromium, root, makeTestMusic } from './fixtures.mjs';
+import { startServer, routeContext, loadChromium, root, makeTestMusic, marsSnapshot } from './fixtures.mjs';
 
 const shots = join(root, 'test', 'screenshots');
 await mkdir(shots, { recursive: true });
 const music = await makeTestMusic(join(root, 'test', '.tmp', 'music'));
-const { server, origin } = await startServer({ music });
+const { server, origin } = await startServer({ music, files: { '/data/mars.json': marsSnapshot() } });
 const browser = await loadChromium().launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 
 const problems = [];
@@ -42,7 +43,8 @@ const readout = (page) =>
   page.evaluate(() => ({
     station: spaceMusic.STATIONS[spaceMusic.state.index].id,
     name: document.querySelector('#np-name').textContent,
-    cards: [...document.querySelectorAll('#cards .card')].map((c) => `${c.querySelector('dt').textContent}: ${c.querySelector('dd').textContent}`),
+    cards: [...document.querySelectorAll('#cards .row')].map((c) => `${c.querySelector('dt').textContent}: ${c.querySelector('dd').textContent}`),
+    facts: [...document.querySelectorAll('#facts div')].map((c) => `${c.querySelector('dt').textContent}: ${c.querySelector('dd').textContent}`),
     lost: document.querySelector('#signal').classList.contains('lost') && !document.querySelector('#signal').hidden,
   }));
 
@@ -58,12 +60,14 @@ await page.click('#tune-in');
 await sleep(7000); // two ISS fixes so the ground track direction is known
 let r = await readout(page);
 check(r.cards.some((x) => x.startsWith('Altitude: 418')), `ISS telemetry (${r.cards.join(' | ')})`);
+check(r.facts.some((x) => x.startsWith('Speed: 27,')), `headline facts under the station (${r.facts.join(' | ')})`);
 const audio = await page.evaluate(() => ({ state: spaceMusic.engine.ctx?.state, level: spaceMusic.engine.level() }));
 check(audio.state === 'running', `audio running (${audio.state})`);
 check(audio.level > 0.001, `station music playing (rms ${audio.level.toFixed(4)})`);
 const playing = await page.evaluate(() => spaceMusic.state.nowPlaying?.title);
 check(/^Test Tone/.test(playing || ''), `now playing a catalog track (${playing})`);
 check((await page.textContent('#music-note')).includes('CC0'), 'the track credit and license are shown');
+check((await page.textContent('#np-track')).includes('Test Tone'), 'the player shows what is playing');
 check(await page.evaluate(() => location.hash === '#iss'), 'address bar holds a shareable station link');
 await page.screenshot({ path: join(shots, 'desktop-iss.png') });
 
@@ -84,13 +88,10 @@ for (let i = 1; i < 6; i++) {
 const level = await page.evaluate(() => spaceMusic.engine.level());
 check(level > 0.001, `music still playing after five station changes (rms ${level.toFixed(4)})`);
 
-// Tuner: scroll the ruler two stations over and let it settle.
-await page.evaluate(() => {
-  const t = document.querySelector('#tuner');
-  t.scrollLeft = t.querySelector('.tuner-mark').offsetWidth * 2;
-});
+check((await page.$$('#stations .station-tab')).length === 6, 'a tab for each station');
+await page.click('#stations .station-tab:nth-child(3)');
 await sleep(900);
-check((await readout(page)).station === 'sun', 'scrolling the tuner changes station');
+check((await readout(page)).station === 'sun', 'a station tab changes station');
 
 // Share falls back to copying the link when there's no share sheet.
 await page.click('#share-btn');
@@ -116,6 +117,8 @@ check((await page.evaluate(() => spaceMusic.state.source)) === 'tracks', 'unreac
 
 // Settings: Enter in a field saves.
 await page.click('#menu-btn');
+await sleep(300);
+await page.screenshot({ path: join(shots, 'desktop-menu.png') });
 await page.click('#menu details summary');
 await page.fill('input[name=nasaKey]', 'TEST_KEY_123');
 await page.press('input[name=nasaKey]', 'Enter');

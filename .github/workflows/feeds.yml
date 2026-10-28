@@ -1,0 +1,41 @@
+# Refreshes the feed snapshots on the live site (data/mars.json) every few
+# hours, between publishes. Publishing also writes a fresh snapshot.
+name: Refresh feed snapshots
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */3 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: feeds
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          path: src
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node src/tools/fetch-feeds.mjs .
+      - name: Commit to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Refresh feed snapshots"
+          git push -q origin HEAD:gh-pages || echo "::warning::gh-pages moved on (a publish ran); the next refresh will catch up"
