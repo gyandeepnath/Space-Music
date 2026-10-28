@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="75%">
+      <stop offset="0" stop-color="#1b2647"/>
+      <stop offset="1" stop-color="#04060b"/>
+    </radialGradient>
+    <radialGradient id="planet" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#ffe6b3"/>
+      <stop offset="0.55" stop-color="#ffb347"/>
+      <stop offset="1" stop-color="#c8641b"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g fill="#cfe3ff">
+    <circle cx="112" cy="122" r="3"/><circle cx="392" cy="96" r="2.5"/><circle cx="420" cy="390" r="3"/>
+    <circle cx="96" cy="372" r="2"/><circle cx="160" cy="430" r="2.5"/><circle cx="350" cy="440" r="2"/>
+  </g>
+  <g transform="rotate(-22 256 256)">
+    <path d="M78 256a178 54 0 0 1 356 0" fill="none" stroke="#ffb347" stroke-opacity=".45" stroke-width="12"/>
+  </g>
+  <circle cx="256" cy="256" r="96" fill="url(#planet)"/>
+  <g transform="rotate(-22 256 256)">
+    <path d="M434 256a178 54 0 0 1-356 0" fill="none" stroke="#ffd38a" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <g fill="none" stroke="#6fd3ff" stroke-width="12" stroke-linecap="round" opacity=".9">
+    <path d="M370 150a150 150 0 0 1 0 212" opacity=".55"/>
+    <path d="M402 118a196 196 0 0 1 0 276" opacity=".3"/>
+  </g>
+</svg>

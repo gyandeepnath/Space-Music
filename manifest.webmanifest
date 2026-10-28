@@ -1,0 +1,107 @@
+{
+  "name": "Space Music",
+  "short_name": "Space Music",
+  "description": "Live radio from the solar system: real-time views of space, with music composed from the live data. Everyone on a station hears the same music.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#04060b",
+  "theme_color": "#05070d",
+  "categories": [
+    "music",
+    "entertainment",
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ISS Live",
+      "url": "./#iss",
+      "icons": [
+        {
+          "src": "art/iss.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Blue Marble",
+      "url": "./#earth",
+      "icons": [
+        {
+          "src": "art/earth.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Solar Live",
+      "url": "./#sun",
+      "icons": [
+        {
+          "src": "art/sun.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Jezero",
+      "url": "./#mars",
+      "icons": [
+        {
+          "src": "art/mars.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Deep Field",
+      "url": "./#deep",
+      "icons": [
+        {
+          "src": "art/deep.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Launch Pad",
+      "url": "./#launch",
+      "icons": [
+        {
+          "src": "art/launch.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
