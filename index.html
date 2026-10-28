@@ -145,9 +145,10 @@
 
         <section class="block">
           <h3>Listening</h3>
-          <div class="seg" role="group" aria-label="Music source">
-            <button type="button" data-source="gen"><b>Live composition</b><small>In sync with everyone</small></button>
-            <button type="button" data-source="fm"><b>SomaFM radio</b><small>Curated space ambient</small></button>
+          <div class="seg seg-3" role="group" aria-label="Music source">
+            <button type="button" data-source="tracks"><b>Station music</b><small>Picked by the live data</small></button>
+            <button type="button" data-source="gen"><b>Live composition</b><small>Made from the data</small></button>
+            <button type="button" data-source="fm"><b>SomaFM</b><small>Space radio</small></button>
           </div>
           <label class="switch-row">
             <span><b>Space DJ</b><small>Reads live facts between the music</small></span>
@@ -235,7 +236,12 @@
       </details>
       <details class="menu-more">
         <summary><svg><use href="#i-sliders" /></svg>Keyboard shortcuts</summary>
-        <p class="keys"><kbd>Space</kbd> play/pause · <kbd>1</kbd>–<kbd>6</kbd> stations · <kbd>←</kbd> <kbd>→</kbd> tune · <kbd>I</kbd> live data · <kbd>M</kbd> music source · <kbd>D</kbd> DJ · <kbd>T</kbd> TV mode · <kbd>C</kbd> car mode · <kbd>S</kbd> share</p>
+        <p class="keys"><kbd>Space</kbd> play/pause · <kbd>1</kbd>–<kbd>6</kbd> stations · <kbd>←</kbd> <kbd>→</kbd> tune · <kbd>I</kbd> live data · <kbd>M</kbd> music source (station music, live composition, SomaFM) · <kbd>D</kbd> DJ · <kbd>T</kbd> TV mode · <kbd>C</kbd> car mode · <kbd>S</kbd> share</p>
+      </details>
+      <details class="menu-more">
+        <summary><svg><use href="#i-sliders" /></svg>Music credits</summary>
+        <p class="keys">Station music: Kevin MacLeod (incompetech.com, CC BY 4.0) and Gustav Holst conducting The Planets with the London Symphony Orchestra, 1922–24 (public domain).</p>
+        <ul class="credits" id="music-credits"></ul>
       </details>
       <details class="menu-more">
         <summary><svg><use href="#i-sliders" /></svg>Credits and data sources</summary>
@@ -281,6 +287,7 @@
           <h2 id="oa-name"></h2>
           <p class="oa-line" id="oa-line"></p>
           <canvas class="scope oa-scope" id="oa-scope" aria-hidden="true"></canvas>
+          <p class="oa-credit" id="oa-credit"></p>
         </div>
       </div>
       <div class="oa-join">

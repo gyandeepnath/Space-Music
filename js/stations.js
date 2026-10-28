@@ -104,7 +104,7 @@ const iss = {
   about:
     'A live camera on the International Space Station, about 400 km up, and a map of where it is right now. The station circles Earth every 93 minutes, so for a third of each orbit the camera looks into night.',
   sound:
-    'Orbital sunrise switches the music to a bright key; Earth’s shadow brings a darker one, about sixteen times a day. Higher latitudes add wind.',
+    'Orbital sunrise switches to brighter music and Earth’s shadow to darker, about sixteen times a day. Higher latitudes add wind.',
   view: 'iss',
   soma: 'missioncontrol',
   refreshMs: 5000,
@@ -145,6 +145,8 @@ const iss = {
 
   hasSignal: (d) => !!d.fix,
   isLit: issLit,
+  // Which playlist the station music draws from.
+  musicMood: (d) => (issLit(d) ? 'day' : 'night'),
 
   // Orbital sunrise flips the key from dark dorian to bright lydian.
   sonify(d) {
@@ -232,7 +234,7 @@ const earth = {
   tagline: 'The whole sunlit Earth, from NASA’s EPIC camera at L1',
   about:
     'The whole sunlit face of Earth, photographed by NASA’s EPIC camera on the DSCOVR spacecraft, 1.5 million km away. Every frame is a real photo from the latest day.',
-  sound: 'The chords follow the longitude at the centre of the picture, so the harmony turns with the planet.',
+  sound: 'Warm, gentle music for the turning planet. In live composition, the chords follow the longitude at the centre of the picture.',
   view: 'slides',
   soma: 'spacestation',
   refreshMs: 30 * 60e3,
@@ -254,6 +256,7 @@ const earth = {
   },
 
   hasSignal: (d) => !!d.items?.length,
+  musicMood: () => 'default',
   slides: (d) => ({ items: d.items || [], fit: 'contain', interval: 9000 }),
 
   // The chord follows the longitude at the centre of the frame on screen, so
@@ -283,7 +286,7 @@ const earth = {
 
   intro(d) {
     const when = d.items?.[0]?.time ? ` These are its latest images, from ${new Date(d.items[0].time).toUTCString().slice(5, 16)}.` : '';
-    return `This is Blue Marble, one point five on your dial. You’re looking at the whole sunlit face of the Earth, seen by NASA’s EPIC camera on the DSCOVR spacecraft, a million and a half kilometres away.${when} The chords follow the planet as it turns.`;
+    return `This is Blue Marble, one point five on your dial. You’re looking at the whole sunlit face of the Earth, seen by NASA’s EPIC camera on the DSCOVR spacecraft, a million and a half kilometres away.${when}`;
   },
 
   bulletins: () => [
@@ -310,7 +313,7 @@ const sun = {
   about:
     'The Sun as NASA’s Solar Dynamics Observatory saw it minutes ago, cycling through six wavelengths of light that each show plasma at a different temperature.',
   sound:
-    'A faster solar wind makes the music busier and brighter, denser wind adds noise, and geomagnetic activity adds tension. A storm switches to a whole-tone scale.',
+    'A faster solar wind brings busier, brighter music and geomagnetic activity adds tension. A geomagnetic storm switches to stormy music.',
   view: 'slides',
   soma: 'deepspaceone',
   refreshMs: 5 * 60e3,
@@ -332,6 +335,11 @@ const sun = {
   },
 
   hasSignal: () => true, // SDO images are plain <img> loads; the slideshow handles failures
+  musicMood(d) {
+    const kp = d.weather?.kp?.value;
+    if (kp >= 5) return 'storm';
+    return d.weather?.wind?.speed >= 500 ? 'active' : 'quiet';
+  },
   slides: () => ({ items: sdoImages(), fit: 'contain', interval: 10000 }),
 
   // Solar wind speed drives how busy and bright it is, proton density the wind
@@ -343,8 +351,8 @@ const sun = {
     return {
       energy,
       brightness: 0.55 + 0.3 * energy,
-      wind: w && Number.isFinite(w.density) ? clamp01(w.density / 15) : 0.4,
-      tension: Number.isFinite(kp) ? clamp01((kp - 2) / 6) : 0.1,
+      wind: w && Number.isFinite(w.density) ? clamp01(w.density / 15) : 0.25 + 0.5 * energy,
+      tension: clamp01((Number.isFinite(kp) ? (kp - 2) / 6 : 0.1) + Math.max(0, -(d.weather?.mag?.bz ?? 0)) / 40),
       pulse: 0.2 + 0.4 * energy,
       scale: kp >= 5 ? 'wholeTone' : null,
     };
@@ -358,6 +366,8 @@ const sun = {
     if (w) rows.push(['Solar wind', `${int(w.speed)} km/s`]);
     if (w && Number.isFinite(w.density)) rows.push(['Density', `${w.density.toFixed(1)} protons/cm³`]);
     if (Number.isFinite(kp)) rows.push(['Kp index', `${kp.toFixed(1)} · ${stormLevel(kp)}`]);
+    const bz = d.weather?.mag?.bz;
+    if (Number.isFinite(bz)) rows.push(['Magnetic field Bz', `${bz > 0 ? '+' : ''}${bz} nT · ${bz < -5 ? 'southward, aurora-friendly' : bz < 0 ? 'southward' : 'northward'}`]);
     rows.push(['Light delay', '≈ 8 min 20 s']);
     return rows;
   },
@@ -423,7 +433,7 @@ const mars = {
   about:
     'The latest raw images from NASA’s Perseverance rover in Jezero Crater, straight from its cameras. The clock is the local time on Mars where the rover is.',
   sound:
-    'The music follows the time of day at Jezero: brighter in daylight, and windier in the afternoon, when dust devils are most common.',
+    'The music follows the time of day at Jezero: brighter in daylight, darker at night, and windier in the afternoon, when dust devils are most common.',
   view: 'slides',
   soma: 'dronezone',
   refreshMs: 60 * 60e3,
@@ -445,6 +455,7 @@ const mars = {
   },
 
   hasSignal: (d) => !!d.items?.length,
+  musicMood: (d, now) => (marsFacts(now).daylight ? 'day' : 'night'),
   slides: (d) => ({ items: d.items || [], fit: 'cover', interval: 11000 }),
 
   // Follows the local time at Jezero: brighter by day, and windier in the
@@ -504,7 +515,7 @@ const mars = {
     return [
       `Mars time check. ${this.clockLine(now)}`,
       'A day on Mars, called a sol, lasts 24 hours and 39 minutes. Mission teams on Earth sometimes live on Mars time to keep up with their rovers.',
-      'The music on Jezero follows the local time at the crater: it brightens at sunrise, and the wind picks up in the afternoon, when dust devils are most common.',
+      'The music on Jezero follows the local time at the crater: brighter after sunrise, darker at night, and windier in the afternoon, when dust devils are most common.',
     ];
   },
 };
@@ -518,9 +529,9 @@ const deep = {
   freq: '13.8',
   unit: 'Gyr',
   name: 'Deep Field',
-  tagline: 'Astronomy Picture of the Day, and the wider cosmos',
+  tagline: 'Astronomy Picture of the Day, and NASA’s telescope archive',
   about: 'NASA’s Astronomy Picture of the Day and the days before it: galaxies, nebulae, eclipses, and the occasional rocket.',
-  sound: 'The key and the melody are seeded by today’s date, so there’s a new piece every day.',
+  sound: 'Slow, spacious music, including Holst conducting his own The Planets in 1922. In live composition, today’s date seeds a new piece.',
   view: 'slides',
   soma: 'deepspaceone',
   refreshMs: 6 * 3600e3,
@@ -548,12 +559,14 @@ const deep = {
   },
 
   hasSignal: (d) => !!d.items?.length,
+  musicMood: () => 'default',
   slides: (d) => ({ items: d.items || [], fit: 'contain', interval: 14000 }),
   sonify: () => ({ brightness: 0.45, energy: 0.25, wind: 0.2, pulse: 0.08, tension: 0.1 }),
 
   telemetry(d, now, slide) {
     const rows = [];
     if (d.today) rows.push(["Today's APOD", d.today.title]);
+    else if (d.history) rows.push(['From the archive', `APOD, this week in ${d.history}`]);
     if (slide?.title && slide.date !== d.today?.date) rows.push(['On screen', `${slide.title} (${slide.date})`]);
     else if (slide?.caption && !slide.title) rows.push(['On screen', slide.caption]);
     return rows;
@@ -568,14 +581,16 @@ const deep = {
   intro(d) {
     const name = 'Deep Field, thirteen point eight on your dial, named for the 13.8 billion years since the Big Bang.';
     if (d.today) return `${name} Today’s Astronomy Picture of the Day is “${d.today.title}”. ${firstSentences(d.today.explanation)}`;
-    return `${name} Today’s music is seeded by today’s date, so it will never play quite the same way again.`;
+    const first = d.items?.[0];
+    if (d.history && first?.title) return `${name} From the Astronomy Picture of the Day archive, this week in ${d.history}: “${first.title}”. ${firstSentences(first.explanation)}`;
+    return `${name} On screen: the deep sky, from the Hubble and Webb space telescope archives.`;
   },
 
   bulletins(d) {
     const items = (d.items || []).filter((i) => i.title && i.date !== d.today?.date).slice(0, 3);
     return [
       ...items.map((i) => `From the archive, ${i.date}: “${i.title}”. ${firstSentences(i.explanation, 200)}`),
-      'The music on Deep Field is seeded by today’s date. Tomorrow, the key and the melody will be different.',
+      'Some of the music on Deep Field is a century old: Gustav Holst conducting his own suite, The Planets, in 1922.',
     ];
   },
 };
@@ -593,7 +608,7 @@ const launch = {
   name: 'Launch Pad',
   tagline: 'The next rocket launch on Earth, counting down',
   about: 'A live countdown to the next rocket launch anywhere on Earth, with what’s coming after it.',
-  sound: 'The music gets busier over the last 48 hours of the countdown, and the telemetry blips speed up towards liftoff.',
+  sound: 'Calm while the next launch is far off. Once it’s less than a day away the music builds, and the telemetry blips speed up towards liftoff.',
   view: 'launch',
   soma: 'missioncontrol',
   refreshMs: 30 * 60e3,
@@ -616,6 +631,11 @@ const launch = {
 
   hasSignal: (d) => !!d.launches?.length,
   next: nextLaunch,
+  musicMood(d, now) {
+    const n = nextLaunch(d, now);
+    const hours = n ? (n.net - now) / 3600e3 : Infinity;
+    return hours < 24 && hours > -1 ? 'build' : 'wait';
+  },
 
   // Energy climbs over the last 48 hours of the countdown.
   sonify(d, now) {

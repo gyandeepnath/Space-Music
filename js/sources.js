@@ -158,11 +158,13 @@ export function sdoImages() {
   }));
 }
 
+// NOAA retired products/solar-wind/plasma-*.json in 2026; the summary file is
+// tiny and current. (The 1-minute real-time file has density too, but it's ~2 MB.)
 async function solarWind() {
-  const records = tableToObjects(await getJSON('https://services.swpc.noaa.gov/products/solar-wind/plasma-5-minute.json'));
-  const speed = lastWhere(records, (r) => num(r.speed));
+  const records = tableToObjects(await getJSON('https://services.swpc.noaa.gov/products/summary/solar-wind-speed.json'));
+  const speed = lastWhere(records, (r) => num(r.proton_speed ?? r.WindSpeed ?? r.speed));
   if (!speed) throw new Error('no solar wind reading');
-  return { speed: speed.value, density: num(speed.record.density), time: speed.record.time_tag };
+  return { speed: speed.value, density: NaN, time: speed.record.time_tag ?? speed.record.TimeStamp };
 }
 
 async function kpIndex() {
@@ -180,12 +182,20 @@ async function kpIndex() {
   ]);
 }
 
+async function magneticField() {
+  const records = tableToObjects(await getJSON('https://services.swpc.noaa.gov/products/summary/solar-wind-mag-field.json'));
+  const bz = lastWhere(records, (r) => num(r.bz_gsm ?? r.Bz));
+  if (!bz) throw new Error('no magnetic field reading');
+  return { bz: bz.value, bt: num(bz.record.bt ?? bz.record.Bt) };
+}
+
 export async function spaceWeather() {
-  const [wind, kp] = await Promise.allSettled([solarWind(), kpIndex()]);
+  const [wind, kp, mag] = await Promise.allSettled([solarWind(), kpIndex(), magneticField()]);
   if (wind.status === 'rejected' && kp.status === 'rejected') throw wind.reason;
   return {
     wind: wind.status === 'fulfilled' ? wind.value : null,
     kp: kp.status === 'fulfilled' ? kp.value : null,
+    mag: mag.status === 'fulfilled' ? mag.value : null,
   };
 }
 
@@ -270,6 +280,9 @@ export async function nasaLibrary(query) {
 
 function apodItem(a) {
   if (!a) return null;
+  // Since the APOD site's move, the API has been returning NASA-logo
+  // placeholders titled "NASA Science" for recent days. Skip those.
+  if (/nasa-logo/i.test(a.url || '') || a.title === 'NASA Science' || /^To view this video/.test(a.explanation || '')) return null;
   const src = a.media_type === 'image' ? a.url : a.thumbnail_url;
   if (!src) return null;
   return {
@@ -281,23 +294,35 @@ function apodItem(a) {
   };
 }
 
-// Today's picture plus the days before it: the same list for everyone.
+const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
+
+// Recent pictures while the APOD API works; otherwise NASA's image library
+// (in 2026 the API returns placeholders for both recent and archive dates).
 export function apod(nasaKey) {
-  const day = new Date().toISOString().slice(0, 10);
+  const day = isoDay(Date.now());
   return cached(`apod:${day}`, 6 * 3600e3, async () => {
-    const since = new Date(Date.now() - 9 * 86400e3).toISOString().slice(0, 10);
     let error;
     try {
-      const list = await getJSON(`https://api.nasa.gov/planetary/apod?api_key=${nasaKey}&thumbs=true&start_date=${since}`);
-      const items = list.map(apodItem).filter(Boolean).reverse(); // newest first
-      if (items.length) return { today: items[0], items };
+      const url = `https://api.nasa.gov/planetary/apod?api_key=${nasaKey}&thumbs=true&start_date=${isoDay(Date.now() - 9 * 86400e3)}`;
+      const recent = (await getJSON(url)).map(apodItem).filter(Boolean).reverse();
+      if (recent.length >= 3) return { today: recent[0].date >= isoDay(Date.now() - 2 * 86400e3) ? recent[0] : null, items: recent };
     } catch (e) {
       error = e;
     }
-    const archive = await nasaLibrary('James Webb Space Telescope');
-    if (!archive.length) throw error || new Error('no APOD images');
-    return { today: null, items: archive };
+    const sky = await deepSky();
+    if (!sky.length) throw error || new Error('no deep-sky images');
+    return { today: null, items: sky };
   });
+}
+
+// Nebulae and galaxies from NASA's library, not telescope engineering photos.
+async function deepSky() {
+  const lists = await Promise.allSettled(['nebula Hubble', 'galaxy Webb', 'nebula Webb'].map((q) => nasaLibrary(q)));
+  const seen = new Set();
+  const items = lists
+    .flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+    .filter((i) => /nebula|galax|cluster|supernova|star.?form|pillars|cosmic|deep field/i.test(i.caption) && !seen.has(i.src) && seen.add(i.src));
+  return dailyShuffle(items, 'deep-sky').slice(0, 30);
 }
 
 // --- Launches (The Space Devs, Launch Library 2) ---------------------------------

@@ -10,6 +10,7 @@ import { Starfield, Slideshow, IssView, LaunchView, Scope } from './views.js';
 import { WorldMap } from './map.js';
 import { store } from './sources.js';
 import { qrSvg } from './qr.js';
+import { TrackPlayer, creditLine } from './tracks.js';
 
 const $ = (s) => document.querySelector(s);
 const N = STATIONS.length;
@@ -31,8 +32,10 @@ const hashIndex = () => indexOf(location.hash.slice(1));
 const state = {
   index: Math.max(0, hashIndex() >= 0 ? hashIndex() : indexOf(store.get('station', 'iss'))),
   powered: false,
-  // Broadcasts always use the live composition: rebroadcasting SomaFM needs their permission.
-  source: BROADCAST ? 'gen' : store.get('source', 'gen'),
+  // 'tracks' (station music), 'gen' (live composition) or 'fm' (SomaFM). Broadcasts
+  // never use SomaFM: rebroadcasting it needs their permission.
+  source: BROADCAST ? 'tracks' : store.get('source', 'tracks'),
+  nowPlaying: null,
   djOn: BROADCAST ? params.get('dj') !== '0' : store.get('dj', true),
   volume: Number(store.get('volume', 0.8)),
   issMain: store.get('issMain', 'camera'),
@@ -49,9 +52,18 @@ const state = {
 
 const station = () => STATIONS[state.index];
 const data = () => state.data[station().id];
-const generative = () => state.powered && state.source === 'gen';
+// Station music falls back to the live composition until its catalog has loaded.
+const source = () => (state.source === 'tracks' && !tracks.ready ? 'gen' : state.source);
+const engineOn = () => state.powered && source() !== 'fm';
+const generative = () => state.powered && source() === 'gen';
 
 const engine = new MusicEngine();
+const tracks = new TrackPlayer(engine, {
+  onTrack: (t) => {
+    state.nowPlaying = t;
+    render();
+  },
+});
 const stream = new StreamPlayer($('#stream-out'));
 const dj = new SpaceDJ({
   onCaption: (text) => {
@@ -71,7 +83,7 @@ const starfield = new Starfield($('#stars'));
 const slideshow = new Slideshow($('#view-slides'));
 const issView = new IssView($('#view-iss'), new WorldMap($('#view-iss .iss-map')));
 const launchView = new LaunchView($('#view-launch'));
-const wave = (buf) => (state.powered && state.source === 'gen' ? engine.waveform(buf) : null);
+const wave = (buf) => (engineOn() ? engine.waveform(buf) : null);
 const scopes = [new Scope($('#scope'), wave), new Scope($('#oa-scope'), wave)];
 
 // ---------------------------------------------------------------- small helpers
@@ -116,7 +128,7 @@ function buildTuner() {
     mark.firstChild.textContent = s.freq;
     mark.lastChild.textContent = s.name;
     mark.setAttribute('aria-label', `${s.name}, ${s.freq} ${s.unit}`);
-    mark.addEventListener('click', () => tune(i, { source: 'button' }));
+    mark.addEventListener('click', () => tune(i, { via: 'button' }));
     track.append(mark);
 
     const p = document.createElement('button');
@@ -126,7 +138,7 @@ function buildTuner() {
     p.innerHTML = '<span class="orb" aria-hidden="true"></span><span><b></b><small></small></span>';
     p.querySelector('b').textContent = s.name;
     p.querySelector('small').textContent = `${i + 1} · ${s.freq} ${s.unit}`.trim();
-    p.addEventListener('click', () => tune(i, { source: 'button' }));
+    p.addEventListener('click', () => tune(i, { via: 'button' }));
     presets.append(p);
   });
   $('#tuner').setAttribute('aria-valuemax', N);
@@ -153,7 +165,7 @@ function settleTuner() {
   if (touching || tuner.classList.contains('dragging')) return;
   engine.setStatic(0);
   const i = Math.max(0, Math.min(N - 1, Math.round(tuner.scrollLeft / markW)));
-  if (i !== state.index) tune(i, { source: 'tuner' });
+  if (i !== state.index) tune(i, { via: 'tuner' });
 }
 
 tuner.addEventListener(
@@ -207,7 +219,7 @@ tuner.addEventListener(
     const i = Math.max(0, Math.min(N - 1, Math.round(tuner.scrollLeft / markW)));
     engine.setStatic(0);
     scrollTunerTo(i, true);
-    if (i !== state.index) tune(i, { source: 'tuner' });
+    if (i !== state.index) tune(i, { via: 'tuner' });
     // Swallow the click that ends a drag.
     tuner.addEventListener('click', (ev) => ev.stopPropagation(), { capture: true, once: true });
   });
@@ -219,7 +231,7 @@ tuner.addEventListener(
       e.preventDefault();
       if (Date.now() - wheelAt < 450) return;
       wheelAt = Date.now();
-      tune(state.index + (e.deltaY > 0 ? 1 : -1), { source: 'button' });
+      tune(state.index + (e.deltaY > 0 ? 1 : -1), { via: 'button' });
     },
     { passive: false },
   );
@@ -270,7 +282,7 @@ tuner.addEventListener(
     const fast = Math.abs(dx) / (performance.now() - t) > 0.5;
     if (Math.abs(dx) > 70 || (fast && Math.abs(dx) > 30)) {
       haptic(10);
-      tune(state.index + (dx < 0 ? 1 : -1), { source: 'swipe' });
+      tune(state.index + (dx < 0 ? 1 : -1), { via: 'swipe' });
     }
   };
   stage.addEventListener('pointerup', end);
@@ -279,12 +291,12 @@ tuner.addEventListener(
 
 // ---------------------------------------------------------------- tuning
 
-function tune(i, { source = 'button' } = {}) {
+function tune(i, { via = 'button' } = {}) {
   const target = ((i % N) + N) % N;
-  const initial = source === 'initial';
+  const initial = via === 'initial';
   if (target === state.index && !initial) {
-    if (source !== 'tuner') scrollTunerTo(target, true);
-    if (state.powered && source === 'button') announceSoon(); // tap again to hear what's on
+    if (via !== 'tuner') scrollTunerTo(target, true);
+    if (state.powered && via === 'button') announceSoon(); // tap again to hear what's on
     return;
   }
   const prev = station();
@@ -299,14 +311,16 @@ function tune(i, { source = 'button' } = {}) {
   state.visualFailed[st.id] = false;
   if (!initial) leaveView(prev);
   enterView(st, !initial);
-  if (source !== 'tuner') scrollTunerTo(target, !initial);
+  if (via !== 'tuner') scrollTunerTo(target, !initial);
   rds.reset();
   startPolling(st);
   if (state.powered) {
-    if (state.source === 'gen') engine.setMood({ ...st.mood, id: st.id }, st.sonify(data(), Date.now()));
-    else {
+    if (source() === 'fm') {
       engine.staticBurst();
       playStream(st);
+    } else {
+      engine.setMood({ ...st.mood, id: st.id }, st.sonify(data(), Date.now()));
+      if (source() === 'tracks') tracks.play(st.id, st.musicMood(data(), Date.now()));
     }
     dj.stop();
     announceSoon();
@@ -381,7 +395,7 @@ async function refresh(st) {
   }
   if (station() !== st) return;
   if (st.view === 'slides') showSlides(st);
-  if (generative()) engine.setData(st.sonify(data(), Date.now()));
+  applyData(st);
   render();
   if (announcePending) announceSoon();
 }
@@ -423,7 +437,9 @@ const rds = {
 setInterval(() => rds.step(), 3200);
 
 function tickerSegments(st) {
-  return st.ticker(data(), Date.now(), state.slide).split(' · ');
+  const segs = st.ticker(data(), Date.now(), state.slide).split(' · ');
+  const t = source() === 'tracks' && state.powered ? state.nowPlaying : null;
+  return t ? [`♪ ${t.title} · ${t.artist}`, ...segs] : segs;
 }
 
 function ago(ms) {
@@ -506,10 +522,22 @@ function renderSheet() {
   $('#sound-text').textContent = st.sound;
   $('#about-text').textContent = st.about;
   $('#on-screen').textContent = state.slide?.caption ? `On screen: ${state.slide.caption}` : '';
-  $('#music-note').textContent =
-    state.source === 'fm'
-      ? state.streamNote || `SomaFM · ${SOMA_CHANNELS[st.soma]} · listener-supported radio`
-      : 'Composed live from this station’s data. Everyone tuned in hears the same notes at the same moment.';
+  renderMusicNote(st);
+}
+
+function renderMusicNote(st = station()) {
+  const el = $('#music-note');
+  const t = state.nowPlaying;
+  if (source() === 'tracks' && t && state.powered) {
+    const link = (href, text) => Object.assign(document.createElement('a'), { href, textContent: text, target: '_blank', rel: 'noopener' });
+    el.replaceChildren(`♪ “${t.title}” · ${t.artist} · `, link(t.licenseUrl, t.license), ' · ', link(t.sourceUrl, 'source'));
+  } else if (source() === 'tracks') {
+    el.textContent = 'Free-licensed music picked for this station, changing with the live data. Everyone tuned in hears the same track at the same moment.';
+  } else if (source() === 'fm') {
+    el.textContent = state.streamNote || `SomaFM · ${SOMA_CHANNELS[st.soma]} · listener-supported radio`;
+  } else {
+    el.textContent = 'Composed live from this station’s data. Everyone tuned in hears the same notes at the same moment.';
+  }
 }
 
 function renderLog() {
@@ -557,7 +585,12 @@ function render() {
   renderSignal();
   if (st.view === 'iss') issView.update(d, st);
   if (st.view === 'launch') launchView.update(st, d, Date.now());
-  if (BROADCAST) renderBroadcastTicker(!tickerHasData);
+  if (BROADCAST) {
+    renderBroadcastTicker(!tickerHasData);
+    const t = state.nowPlaying;
+    $('#oa-credit').textContent =
+      source() === 'tracks' && t ? `♪ “${t.title}” · ${t.artist} · ${t.license}` : '♪ Composed live from this station’s data';
+  }
   updateMediaSession();
 }
 
@@ -569,10 +602,16 @@ setInterval(() => {
   if (BROADCAST) broadcastTick();
 }, 1000);
 
-// Time-driven sonification (Mars local time, launch countdown) every 30 s.
-setInterval(() => {
-  if (generative()) engine.setData(station().sonify(data(), Date.now()));
-}, 30e3);
+// Live data shapes the sound: the composition (or, under station music, its
+// wind and blips and the music's tone), and which playlist mood plays.
+function applyData(st = station()) {
+  if (!engineOn()) return;
+  engine.setData(st.sonify(data(), Date.now()));
+  if (source() === 'tracks') tracks.setMood(st.musicMood(data(), Date.now()));
+}
+
+// Time-driven changes (Mars local time, launch countdown) every 30 s.
+setInterval(() => applyData(), 30e3);
 
 // Oscilloscope and the play button's glow follow the real output.
 function frame() {
@@ -586,18 +625,12 @@ function frame() {
 async function powerOn() {
   if (state.powered) return;
   state.powered = true;
+  tracks.unlock();
   const st = station();
   engine.setVolume(state.volume);
   stream.setVolume(state.volume);
   try {
-    if (state.source === 'gen') {
-      engine.setMood({ ...st.mood, id: st.id }, st.sonify(data(), Date.now()));
-      await engine.start($('#engine-out'));
-    } else {
-      await engine.prepare($('#engine-out'));
-      engine.staticBurst();
-      playStream(st);
-    }
+    await startMusic(st);
   } catch (e) {
     console.warn(e);
   }
@@ -613,12 +646,32 @@ function powerOff() {
   state.powered = false;
   engine.suspend();
   stream.stop();
+  tracks.stop();
   dj.stop();
   clearInterval(bulletinTimer);
   render();
 }
 
 const togglePower = () => (state.powered ? powerOff() : powerOn());
+
+// Start whichever music source is selected, for the current station.
+async function startMusic(st = station()) {
+  const src = source();
+  if (src === 'fm') {
+    tracks.stop();
+    engine.stop();
+    await engine.prepare($('#engine-out'));
+    engine.staticBurst();
+    playStream(st);
+    return;
+  }
+  stream.stop();
+  engine.setTexture(src === 'tracks');
+  engine.setMood({ ...st.mood, id: st.id }, st.sonify(data(), Date.now()));
+  await engine.start($('#engine-out'));
+  if (src === 'tracks') tracks.play(st.id, st.musicMood(data(), Date.now()));
+  else tracks.stop();
+}
 
 async function playStream(st) {
   state.streamNote = `Connecting to SomaFM ${SOMA_CHANNELS[st.soma]}…`;
@@ -631,8 +684,8 @@ async function playStream(st) {
     state.streamNote = '';
     console.warn(e);
     if (state.source === 'fm' && station() === st) {
-      toast('SomaFM isn’t reachable. Switched to live composition.', 4000);
-      setSource('gen');
+      toast(`SomaFM isn’t reachable. Switched to ${tracks.ready ? 'station music' : 'live composition'}.`, 4000);
+      setSource(tracks.ready ? 'tracks' : 'gen');
     }
   }
   renderSheet();
@@ -640,20 +693,12 @@ async function playStream(st) {
 
 function setSource(src) {
   if (src === state.source) return;
+  tracks.unlock();
   state.source = src;
-  store.set('source', src);
+  if (!BROADCAST) store.set('source', src);
   if (state.powered) {
-    const st = station();
-    if (src === 'gen') {
-      stream.stop();
-      engine.staticBurst();
-      engine.setMood({ ...st.mood, id: st.id }, st.sonify(data(), Date.now()));
-      engine.start();
-    } else {
-      engine.stop();
-      engine.staticBurst();
-      playStream(st);
-    }
+    engine.staticBurst();
+    startMusic();
   }
   render();
 }
@@ -748,8 +793,10 @@ function updateMediaSession() {
   if (!('mediaSession' in navigator) || !window.MediaMetadata) return;
   const st = station();
   navigator.mediaSession.playbackState = state.powered ? 'playing' : 'paused';
-  const title = `${st.name} · ${st.freq} ${st.unit}`.trim();
-  const line = tickerSegments(st).slice(0, 3).join(' · ');
+  const t = source() === 'tracks' && state.powered ? state.nowPlaying : null;
+  // With station music, show the track (as music apps do) and the station under it.
+  const title = t ? t.title : `${st.name} · ${st.freq} ${st.unit}`.trim();
+  const line = t ? `${t.artist} · ${st.name}` : tickerSegments(st).slice(0, 3).join(' · ');
   const key = `${title}|${line}`;
   // Lock screens and car displays redraw slowly; don't flood them.
   if (key === mediaKey || (Date.now() - mediaAt < 15e3 && key.startsWith(`${title}|`))) return;
@@ -967,7 +1014,7 @@ function broadcastTick() {
   const next = $('#oa-next');
   if (schedule.period > 0 && schedule.list.length > 1) {
     const due = scheduledIndex(now);
-    if (due !== state.index) tune(due, { source: 'schedule' });
+    if (due !== state.index) tune(due, { via: 'schedule' });
     const left = schedule.period - (now % schedule.period);
     const upcoming = STATIONS[scheduledIndex(now + left + 1000)];
     const m = Math.floor(left / 60e3);
@@ -1021,7 +1068,21 @@ function fillVoices() {
   select.disabled = !dj.synth;
 }
 
+function renderCredits() {
+  const list = $('#music-credits');
+  if (!tracks.catalog?.tracks?.length || list.childElementCount) return;
+  list.replaceChildren(
+    ...tracks.catalog.tracks.map((t) => {
+      const li = document.createElement('li');
+      li.append(`${creditLine(t)}. Changes: ${t.changes}. `);
+      li.append(Object.assign(document.createElement('a'), { href: t.sourceUrl, textContent: 'Source', target: '_blank', rel: 'noopener' }));
+      return li;
+    }),
+  );
+}
+
 function openMenu() {
+  renderCredits();
   const f = $('#settings-form');
   f.nasaKey.value = settings.nasaKey;
   f.issVideo.value = settings.issVideo;
@@ -1110,7 +1171,7 @@ function bindControls() {
 
   addEventListener('hashchange', () => {
     const i = hashIndex();
-    if (i >= 0 && i !== state.index) tune(i, { source: 'button' });
+    if (i >= 0 && i !== state.index) tune(i, { via: 'button' });
   });
 
   addEventListener('keydown', (e) => {
@@ -1126,7 +1187,7 @@ function bindControls() {
       if (!$('#splash').hidden && !$('#splash').classList.contains('gone')) dismissSplash(true);
       else togglePower();
     } else if (k === 'i') openSheet(!$('#sheet').classList.contains('open'));
-    else if (k === 'm') setSource(state.source === 'gen' ? 'fm' : 'gen');
+    else if (k === 'm') setSource({ tracks: 'gen', gen: 'fm', fm: 'tracks' }[state.source] || 'tracks');
     else if (k === 'd') setDJ(!state.djOn);
     else if (k === 't') setTV(!body.classList.contains('tv'));
     else if (k === 'c') setCar(!body.classList.contains('car'));
@@ -1156,13 +1217,18 @@ addEventListener('resize', measureLayout);
 
 buildTuner();
 bindControls();
+// Station music becomes available once its catalog loads (it's built at publish time).
+tracks.load().then((ok) => {
+  if (ok && state.powered && state.source === 'tracks') startMusic();
+  render();
+});
 body.dataset.station = station().id;
 if (BROADCAST) {
   if (schedule.period > 0 && hashIndex() < 0) state.index = scheduledIndex();
   body.classList.add('broadcast');
 }
 if (!BROADCAST && store.get('car', false)) setCar(true);
-tune(state.index, { source: 'initial' });
+tune(state.index, { via: 'initial' });
 $('#splash-eyebrow').textContent = hashIndex() >= 0 && !BROADCAST ? 'You’re invited to tune in' : 'Now on air';
 if (BROADCAST) {
   renderBroadcastStation();
@@ -1176,4 +1242,4 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 }
 
 // Exposed for debugging and the smoke test.
-window.spaceMusic = { state, engine, stream, dj, tune, powerOn, powerOff, setSource, STATIONS };
+window.spaceMusic = { state, engine, tracks, stream, dj, tune, powerOn, powerOff, setSource, STATIONS };

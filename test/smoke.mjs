@@ -10,11 +10,12 @@
 
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { startServer, routeContext, loadChromium, root } from './fixtures.mjs';
+import { startServer, routeContext, loadChromium, root, makeTestMusic } from './fixtures.mjs';
 
 const shots = join(root, 'test', 'screenshots');
 await mkdir(shots, { recursive: true });
-const { server, origin } = await startServer();
+const music = await makeTestMusic(join(root, 'test', '.tmp', 'music'));
+const { server, origin } = await startServer({ music });
 const browser = await loadChromium().launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 
 const problems = [];
@@ -59,13 +60,16 @@ let r = await readout(page);
 check(r.cards.some((x) => x.startsWith('Altitude: 418')), `ISS telemetry (${r.cards.join(' | ')})`);
 const audio = await page.evaluate(() => ({ state: spaceMusic.engine.ctx?.state, level: spaceMusic.engine.level() }));
 check(audio.state === 'running', `audio running (${audio.state})`);
-check(audio.level > 0.001, `engine producing sound (rms ${audio.level.toFixed(4)})`);
+check(audio.level > 0.001, `station music playing (rms ${audio.level.toFixed(4)})`);
+const playing = await page.evaluate(() => spaceMusic.state.nowPlaying?.title);
+check(/^Test Tone/.test(playing || ''), `now playing a catalog track (${playing})`);
+check((await page.textContent('#music-note')).includes('CC0'), 'the track credit and license are shown');
 check(await page.evaluate(() => location.hash === '#iss'), 'address bar holds a shareable station link');
 await page.screenshot({ path: join(shots, 'desktop-iss.png') });
 
 const expectations = {
   earth: (x) => x.cards.some((s) => s.startsWith('Images: 8')),
-  sun: (x) => x.cards.some((s) => s.startsWith('Solar wind: 458')) && x.cards.some((s) => s.startsWith('Kp index: 2.7')),
+  sun: (x) => x.cards.some((s) => s.startsWith('Solar wind: 458')) && x.cards.some((s) => s.startsWith('Kp index: 2.7')) && x.cards.some((s) => s.startsWith('Magnetic field Bz: -4 nT')),
   mars: (x) => x.cards.some((s) => s.startsWith('Mission sol:')) && x.cards.some((s) => s.startsWith('Camera:')),
   deep: (x) => x.cards.some((s) => s.includes('Test Pattern Nebula')),
   launch: (x) => x.cards.some((s) => s.startsWith('Mission: Fixture Mission A')),
@@ -100,10 +104,15 @@ check(await page.isVisible('#qr-dialog svg'), 'QR code dialog renders');
 await page.screenshot({ path: join(shots, 'desktop-qr.png') });
 await page.click('#qr-dialog [data-close]');
 
-// SomaFM can't be reached here: the player should fall back to the live composition.
+// M cycles the music source: station music → live composition → SomaFM.
 await page.keyboard.press('m');
-await page.waitForFunction(() => spaceMusic.state.source === 'gen', null, { timeout: 45000 }).catch(() => {});
-check((await page.evaluate(() => spaceMusic.state.source)) === 'gen', 'unreachable SomaFM falls back to live composition');
+await sleep(3500);
+const gen = await page.evaluate(() => ({ source: spaceMusic.state.source, level: spaceMusic.engine.level(), voices: spaceMusic.engine.voices.size }));
+check(gen.source === 'gen' && gen.level > 0.001 && gen.voices > 0, `live composition plays (rms ${gen.level.toFixed(4)}, ${gen.voices} voices)`);
+// SomaFM can't be reached here: the player should fall back to station music.
+await page.keyboard.press('m');
+await page.waitForFunction(() => spaceMusic.state.source === 'tracks', null, { timeout: 45000 }).catch(() => {});
+check((await page.evaluate(() => spaceMusic.state.source)) === 'tracks', 'unreachable SomaFM falls back to station music');
 
 // Settings: Enter in a field saves.
 await page.click('#menu-btn');
@@ -133,8 +142,15 @@ await sleep(5000);
 const b = await open({ width: 800, height: 600 }, '/#sun');
 await b.click('#tune-in');
 await sleep(4000);
+const where = (p) => p.evaluate(() => ({ track: spaceMusic.tracks.current?.track.id, at: Date.now(), time: spaceMusic.tracks.decks[spaceMusic.tracks.active].el.currentTime }));
+const [ta, tb] = await Promise.all([a, b].map(where));
+const drift = Math.abs(ta.time - (ta.at - tb.at) / 1000 - tb.time);
+check(ta.track && ta.track === tb.track && drift < 1.5, `a listener who joins later hears the same track at the same moment (${ta.track} vs ${tb.track}, ${drift.toFixed(2)} s apart)`);
+// And the live composition is in sync too.
+await Promise.all([a, b].map((p) => p.keyboard.press('m')));
+await sleep(4000);
 const [ca, cb] = await Promise.all([a, b].map((p) => p.evaluate(() => ({ seed: spaceMusic.engine.seed, chord: spaceMusic.engine.currentChord }))));
-check(ca.seed === cb.seed && ca.chord?.index === cb.chord?.index && ca.chord?.degree === cb.chord?.degree, `a listener who joins later hears the same chord (${JSON.stringify(ca.chord)} vs ${JSON.stringify(cb.chord)})`);
+check(ca.seed === cb.seed && ca.chord?.index === cb.chord?.index && ca.chord?.degree === cb.chord?.degree, `…and the same chord of the live composition (${JSON.stringify(ca.chord)} vs ${JSON.stringify(cb.chord)})`);
 await a.context().close();
 await b.context().close();
 

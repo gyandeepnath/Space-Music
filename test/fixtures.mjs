@@ -30,17 +30,31 @@ const TYPES = {
   '.json': 'application/json',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.mp3': 'audio/mpeg',
   '.woff2': 'font/woff2',
   '.webmanifest': 'application/manifest+json',
 };
 
-export async function startServer() {
+// `music`: a directory to serve /music/ from (the real music is built at publish time).
+export async function startServer({ music } = {}) {
   const server = createServer(async (req, res) => {
     const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
-    const file = join(root, path.endsWith('/') ? `${path}index.html` : path);
+    const base = music && path.startsWith('/music/') ? music : root;
+    const rel = base === root ? path : path.slice('/music'.length);
+    const file = join(base, rel.endsWith('/') ? `${rel}index.html` : rel);
     try {
       const body = await readFile(file);
-      res.writeHead(200, { 'content-type': TYPES[extname(file)] || 'application/octet-stream' });
+      const type = TYPES[extname(file)] || 'application/octet-stream';
+      // Range requests, like GitHub Pages: audio seeking depends on them.
+      const range = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
+      if (range) {
+        const start = range[1] ? Number(range[1]) : 0;
+        const end = range[2] ? Math.min(Number(range[2]), body.length - 1) : body.length - 1;
+        res.writeHead(206, { 'content-type': type, 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${body.length}`, 'content-length': end - start + 1 });
+        res.end(body.subarray(start, end + 1));
+        return;
+      }
+      res.writeHead(200, { 'content-type': type, 'accept-ranges': 'bytes', 'content-length': body.length });
       res.end(body);
     } catch {
       res.writeHead(404).end();
@@ -122,6 +136,8 @@ export function routeFixture(url) {
   }
   if (host === 'services.swpc.noaa.gov') {
     // Old header-row format for plasma, new (2026) object format for Kp.
+    if (u.pathname.includes('solar-wind-speed')) return json([{ proton_speed: 458, time_tag: '2026-10-28T08:55:00Z' }]);
+    if (u.pathname.includes('solar-wind-mag-field')) return json([{ bt: 5, bz_gsm: -4, time_tag: '2026-10-28T08:55:00Z' }]);
     if (u.pathname.includes('plasma')) return json([['time_tag', 'density', 'speed', 'temperature'], ['2026-10-28 08:50:00.000', '4.21', '462.5', '91234'], ['2026-10-28 08:55:00.000', '4.05', '458.1', '90011']]);
     if (u.pathname.includes('planetary_k_index_1m')) return json([{ time_tag: '2026-10-28T08:54:00', kp_index: 2, estimated_kp: 2.33, kp: '2P' }, { time_tag: '2026-10-28T08:55:00', kp_index: 3, estimated_kp: 2.67, kp: '3M' }]);
   }
@@ -133,7 +149,9 @@ export function routeFixture(url) {
     const item = (d, title) => ({ date: d, title, explanation: `${title} is a fixture explanation used by the smoke test. It has a second sentence. And a third one that is a little longer than the others.`, url: `https://apod.nasa.gov/apod/image/test/${encodeURIComponent(title)}.jpg`, media_type: 'image', copyright: 'Test Photographer' });
     const days = Array.from({ length: 8 }, (_, i) => new Date(t0 - (7 - i) * 86400e3).toISOString().slice(0, 10));
     const titles = ['Fixture Nebula', 'Fixture Galaxy', 'Fixture Comet', 'Fixture Aurora', 'Fixture Eclipse', 'Fixture Cluster', 'Fixture Moon', 'Fixture: The Test Pattern Nebula'];
-    return json(days.map((d, i) => item(d, titles[i])));
+    // Like the live API since the APOD site's move: a NASA-logo placeholder mixed in.
+    const junk = { date: days[6], title: 'NASA Science', explanation: 'To view this video please enable JavaScript', url: 'https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png', media_type: 'image' };
+    return json([...days.map((d, i) => item(d, titles[i])).slice(0, 6), junk, item(days[7], titles[7])]);
   }
   if (host === 'll.thespacedevs.com') {
     const mk = (h, name, provider, pad) => ({ name, net: iso(t0 + h * 3600e3), status: { abbrev: h < 30 ? 'Go' : 'TBC', name: h < 30 ? 'Go for Launch' : 'To Be Confirmed' }, launch_service_provider: { name: provider }, pad: { location: { name: pad } }, image: { image_url: 'https://thespacedevs-prod.nyc3.digitaloceanspaces.com/test/rocket.png' } });
@@ -157,4 +175,24 @@ export async function routeContext(context) {
     if (res) await r.fulfill(res);
     else await r.abort('internetdisconnected');
   });
+}
+
+// Synthetic stand-in tracks (soft chords, clearly not real music) and a catalog
+// that gives every station and mood something to play. Needs ffmpeg.
+export async function makeTestMusic(dir) {
+  const { mkdir: mk, writeFile: wf } = await import('node:fs/promises');
+  const { execFileSync } = await import('node:child_process');
+  await mk(join(dir, 'tracks'), { recursive: true });
+  const notes = [[220, 277, 330], [196, 247, 294], [175, 220, 262], [247, 311, 370]];
+  const tracks = notes.map((chord, i) => {
+    const id = `test-${i + 1}`;
+    const expr = chord.map((f) => `0.12*sin(2*PI*${f}*t)`).join('+');
+    execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', `aevalsrc=${expr}:s=44100:d=40`, '-af', 'tremolo=f=0.3:d=0.4,afade=t=in:d=2,afade=t=out:st=37:d=3', '-ac', '2', '-b:a', '96k', join(dir, 'tracks', `${id}.mp3`)]);
+    return { id, title: `Test Tone ${i + 1}`, artist: 'Space Music test fixture', license: 'CC0', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/', sourceUrl: 'https://example.com/', file: `music/tracks/${id}.mp3`, duration: 40, changes: 'none', credit: `“Test Tone ${i + 1}” (test fixture)` };
+  });
+  const ids = tracks.map((t) => t.id);
+  const moods = { iss: ['day', 'night'], earth: ['default'], sun: ['quiet', 'active', 'storm'], mars: ['day', 'night'], deep: ['default'], launch: ['wait', 'build'] };
+  const stations = Object.fromEntries(Object.entries(moods).map(([s, ms]) => [s, Object.fromEntries(ms.map((m, i) => [m, [ids[i % 4], ids[(i + 1) % 4]]]))]));
+  await wf(join(dir, 'catalog.json'), JSON.stringify({ generated: new Date().toISOString(), tracks, stations }));
+  return dir;
 }

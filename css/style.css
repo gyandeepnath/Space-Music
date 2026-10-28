@@ -1333,6 +1333,15 @@ body.dj-talking .caption {
     background 0.2s;
 }
 
+.seg-3 {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.seg-3 button {
+  padding: 10px 10px;
+}
+
 .seg b {
   font-weight: 600;
   font-size: 14px;
@@ -2321,6 +2330,15 @@ body.broadcast #onair {
 .oa-scope {
   height: calc(var(--u) * 2);
   margin-top: calc(var(--u) * 0.4);
+}
+
+.oa-credit {
+  margin: calc(var(--u) * 0.2) 0 0;
+  font-size: calc(var(--u) * 0.85);
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .oa-join {

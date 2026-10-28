@@ -9,12 +9,7 @@ export const SOMA_CHANNELS = {
 };
 
 function streamUrls(id) {
-  return [
-    `https://ice.somafm.com/${id}`,
-    `https://ice1.somafm.com/${id}-128-mp3`,
-    `https://ice2.somafm.com/${id}-128-mp3`,
-    `https://ice4.somafm.com/${id}-128-mp3`,
-  ];
+  return [1, 2, 4, 6].map((n) => `https://ice${n}.somafm.com/${id}-128-mp3`);
 }
 
 export class StreamPlayer {

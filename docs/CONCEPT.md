@@ -38,7 +38,7 @@ Each station maps live (or live-computed) data onto the music. That's what makes
 
 | Mode | Where | The screen | The sound |
 | --- | --- | --- | --- |
-| **Phone and web** (primary) | Phone, laptop, headphones | Full-bleed live view: swipe between stations, a tuning ruler, live data in a sheet | Live composition, with the DJ between the music |
+| **Phone and web** (primary) | Phone, laptop, headphones | Full-bleed live view: swipe between stations, a tuning ruler, live data in a sheet | Station music or the live composition, with the DJ between the music |
 | **Broadcast** | YouTube Live, Twitch, TikTok, Instagram, YouTube Shorts | An on-air layout with a QR code to tune in, 16:9 or vertical | The same live composition, so viewers can join on their phones |
 | **TV** | TV, desktop second screen | Full screen; the controls fade away | Ambient, always on |
 | **Car** | Phone in a dash mount (later: CarPlay / Android Auto) | Six big presets. **Nothing moves** | Primary: steering-wheel next/previous changes station |
@@ -66,7 +66,8 @@ What would need a small backend (none of it is built):
 | --- | --- | --- | --- |
 | **A. Generative and sonified**: a synth engine driven by data | Unique (the core idea), free, no licensing, endless, works offline | Stays ambient; the sound has a quality ceiling until it's sample-based | **Built** (Web Audio, no samples) |
 | **B. Curated internet radio** (SomaFM) | Real, well-curated music; *Mission Control* mixes in NASA comms | Third-party dependency; check SomaFM's terms before any commercial use; can't react to the data | **Built** as a second source, falling back to A if unreachable |
-| **C. Licensed production-music catalogue** | Polished, many genres | Recurring cost; streaming and broadcast rights need checking | Not built |
+| **C. Free-licensed recordings** (CC BY, CC0, public domain), scheduled by mood | Real music, free, streamable on YouTube; no contracts or contact with artists; the data still picks the mood | Credit required (CC BY); a fixed catalogue, so it repeats after a few hours; Content ID can misfire on CC BY music | **Built and the default**: 53 tracks by Kevin MacLeod and Holst's own 1922 *The Planets* (see `music/selection.json`) |
+| **C2. Licensed production-music catalogue** | Polished, many genres | Recurring cost; streaming and broadcast rights need checking | Not built |
 | **D. User's own Spotify / Apple Music** | Familiar | Their developer terms restrict pairing recordings with visuals and other audio, which is exactly this app; verify current terms first | Not recommended |
 | **E. Artist stems arranged by data** | Real musicians *and* live reactivity, like adaptive game music | Needs commissioning and a stem-mixing engine | The natural "v2" of A |
 | **F. NASA sounds as interstitials**: Chandra sonifications, Perseverance's Mars microphone, mission audio | Authentic, mostly public domain (check each item) | Not music on its own | Easy add-on |
@@ -106,14 +107,14 @@ What would need a small backend (none of it is built):
 
 - **Live sources are flaky by nature.** The ISS camera is dark for about a third of each orbit and has loss-of-signal gaps. The prototype answers this with the map, the "in Earth's shadow, sunrise in N min" overlay and an honest "no signal" state, never fake data.
 - **Rate limits:** NASA's DEMO_KEY allows about 30 requests an hour per IP, and Launch Library about 15 an hour. Fine for one person; real users need a small caching backend, or the server-broadcast design above.
-- **Licensing:** NASA imagery is generally free to use, but **APOD images are often copyrighted by their photographers** (credits are shown; commercial use needs permission). Don't use NASA logos in a way that implies endorsement. SomaFM's terms need checking for commercial use.
+- **Licensing:** NASA imagery is generally free to use, but **APOD images are often copyrighted by their photographers** (credits are shown; commercial use needs permission). Don't use NASA logos in a way that implies endorsement. SomaFM's terms need checking for commercial use. The station music is CC BY or public domain, and its credits are generated automatically.
 - **Endpoint churn:** NOAA reformatted several JSON feeds in March 2026 (the prototype parses both formats). The Perseverance raw-image feed is a public website API rather than a formal one. YouTube live IDs change; the prototype embeds NASA's channel by default and lets you paste a specific stream.
 - **Driver distraction:** car mode must stay audio-first; native car platforms enforce this anyway.
 
 ## 10. Decisions for you
 
 1. ~~**Which form factor first?**~~ Decided: **phone and web**, with social listening and streaming.
-2. **Music direction:** live composition first (as built), curated radio, or artist collaborations (stems)?
+2. ~~**Music direction:**~~ Decided: **existing free-licensed music** (option C), with the live composition as the alternative. No artist collaborations.
 3. **A 24/7 channel?** Run OBS on an always-on machine now, or invest in a server-side renderer that streams unattended (and also unlocks clips and smart speakers; see §6)?
 4. **Presence and chat:** worth adding a small realtime backend for "N listening now" and reactions?
 5. **A name and a domain:** the QR codes and share links need a public home (GitHub Pages works today).

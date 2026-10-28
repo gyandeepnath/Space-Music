@@ -9,7 +9,7 @@ Space Music has an on-air layout made for live streams. It has a "Live" bug with
 Add `?broadcast` to the app's address:
 
 ```
-https://YOUR-HOST/?broadcast
+https://gyandeepnath.github.io/Space-Music/?broadcast
 ```
 
 | Option | Example | What it does |
@@ -27,13 +27,14 @@ The layout adapts to the canvas: **1920×1080** for YouTube and Twitch, **1080×
 
 ## Streaming it with OBS (free)
 
-1. **Host the app** somewhere public, such as GitHub Pages (*Settings → Pages → Deploy from a branch*). The QR code needs a public address so viewers can join.
+1. **The app is already hosted** at https://gyandeepnath.github.io/Space-Music/ by the publish workflow (if it doesn't open, see the one-time switch-on in [PLAN.md](PLAN.md)). The QR code needs this public address so viewers can join.
 2. In **OBS → Sources → + → Browser**:
-   - URL: `https://YOUR-HOST/?broadcast&rotate=10`
+   - URL: `https://gyandeepnath.github.io/Space-Music/?broadcast&rotate=10`
    - Width/Height: `1920` × `1080` (or `1080` × `1920` for vertical; also set *Settings → Video* to match)
    - Tick **Control audio via OBS**, so the music goes into the stream.
 3. Check the audio meter in OBS's mixer. If the page shows "Click to start the broadcast audio", right-click the source and choose **Interact** to click it once.
 4. **YouTube:** in YouTube Studio choose *Create → Go live → Stream*, copy the stream key into *OBS → Settings → Stream* (service: YouTube), then press *Start Streaming*. Twitch, TikTok Live and Instagram Live work the same way with their own stream keys or RTMP URLs (TikTok and Instagram require eligible accounts).
+5. **Paste the music credits** into the stream's description: they're ready at https://gyandeepnath.github.io/Space-Music/music/youtube-description.txt. The CC BY license requires this credit.
 
 **The DJ's voice** comes from the computer's text-to-speech, not the page. A browser source carries the captions but not the voice. If you want the voice on stream, add a *Desktop Audio* source, or leave the DJ to captions only.
 
@@ -41,13 +42,16 @@ The layout adapts to the canvas: **1920×1080** for YouTube and Twitch, **1080×
 
 ## How "joining" works, and its limits
 
-The music is composed from a shared clock and the same live data for everyone (see `js/engine.js`). A phone that scans the QR code therefore plays **the same notes as every other listener in the app**, without a server.
+Each station's playlist runs on a shared clock (see `js/tracks.js`), and the live data that picks the mood is the same for everyone. A phone that scans the QR code therefore plays **the same track, at the same second, as every other listener in the app**, without a server. The live composition is clock-synced the same way (see `js/engine.js`).
 
 The stream itself is delayed by the platform's latency: a few seconds in YouTube's ultra-low-latency mode, and longer otherwise. So a viewer listening on their phone while watching the stream will hear the phone *ahead* of the video by that delay. People listening in the app are in sync with each other.
 
 ## Rights checklist before you go live
 
-- **Music:** broadcast mode always uses the live composition, which this project generates itself. It never rebroadcasts SomaFM; that needs SomaFM's permission.
+- **Music:** broadcast mode plays the station music, which is free to stream, including on monetized channels:
+  - Kevin MacLeod's tracks are **CC BY 4.0**: credit him in the description (step 5 above). YouTube's Content ID sometimes flags his music by mistake; if it does, dispute the claim and point to the CC BY license and incompetech.com.
+  - Holst conducting *The Planets* (1922–24) is **public domain**.
+  - Broadcast mode never rebroadcasts SomaFM; that needs SomaFM's permission.
 - **NASA imagery** (EPIC, SDO, Perseverance raw images) is generally free to use. Don't use NASA logos in a way that implies endorsement.
-- **Astronomy Picture of the Day** images are often **copyrighted by their photographers**. For monetized streams, check rights or leave Deep Field out (`stations=iss,earth,sun,mars,launch`).
+- **Deep Field** shows NASA's Hubble and Webb images, but when the APOD API works it shows Astronomy Picture of the Day, whose images are often **copyrighted by their photographers**. For monetized streams, check rights or leave Deep Field out (`stations=iss,earth,sun,mars,launch`).
 - **NASA's YouTube ISS camera:** the footage is NASA's, but embedding a YouTube player inside a YouTube stream can trip automated claims. Use `camera=0` to show the live map instead.

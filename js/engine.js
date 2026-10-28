@@ -121,6 +121,7 @@ export class MusicEngine {
     this.wallOffset = 0;
     this.holdUntil = 0;
     this.currentChord = null;
+    this.textureOnly = false;
   }
 
   get running() {
@@ -264,6 +265,15 @@ export class MusicEngine {
     hiss.connect(this.staticFilter).connect(this.staticGain).connect(this.duckGain);
     hiss.start();
 
+    // Recorded station music joins after the synth's fade, so the DJ can duck
+    // it, live data can shade it, and the oscilloscope can see it.
+    this.trackInput = ctx.createGain();
+    this.trackTone = ctx.createBiquadFilter();
+    this.trackTone.type = 'lowpass';
+    this.trackTone.frequency.value = 18000;
+    this.trackTone.Q.value = 0.5;
+    this.trackInput.connect(this.trackTone).connect(this.duckGain);
+
     if (element && 'srcObject' in element && ctx.createMediaStreamDestination) {
       const dest = ctx.createMediaStreamDestination();
       this.out.connect(dest);
@@ -374,6 +384,19 @@ export class MusicEngine {
   setData(mod) {
     Object.assign(this.mod, mod);
     if (this.running) this.applyContinuous(false);
+    if (this.trackTone) {
+      // Station music darkens gently with the data (e.g. in the ISS's night).
+      const cutoff = 2400 + 15600 * Math.min(1, Math.max(0, this.mod.brightness)) ** 1.2;
+      this.trackTone.frequency.setTargetAtTime(cutoff, this.ctx.currentTime, 3);
+    }
+  }
+
+  // With recorded music playing, the synth keeps only its unpitched data layer:
+  // wind shaped by the live data and the telemetry blips. No chords to clash.
+  setTexture(on) {
+    this.textureOnly = on;
+    if (this.ctx && on) this.releaseVoices(1.5);
+    if (this.running) this.applyContinuous(false);
   }
 
   get bpm() {
@@ -435,7 +458,8 @@ export class MusicEngine {
     const cutoff = 260 + 2600 * b ** 1.5;
     this.ramp(this.padFilter.frequency, cutoff, t);
     this.ramp(this.lfoDepth.gain, cutoff * 0.45, t);
-    this.ramp(this.windGain.gain, 0.015 + 0.2 * this.mood.wind * (0.4 + this.mod.wind), t);
+    const windScale = this.textureOnly ? 0.45 : 1;
+    this.ramp(this.windGain.gain, (0.015 + 0.2 * this.mood.wind * (0.4 + this.mod.wind)) * windScale, t);
     this.ramp(this.wet.gain, 0.35 + 0.5 * this.mood.reverb, t);
     this.delay.delayTime.setTargetAtTime((0.75 * 60) / this.bpm, this.ctx.currentTime, 1);
   }
@@ -494,6 +518,7 @@ export class MusicEngine {
   playChord(c, t0, t1, len) {
     const degree = this.chordDegree(c);
     this.currentChord = { index: c, degree };
+    if (this.textureOnly) return;
     const plan = chordPlan(this.seed, c);
     const degrees = [degree, degree + 2, degree + 4];
     if (plan.seventh < 0.45 + 0.4 * this.mod.tension) degrees.push(degree + 6);
@@ -551,15 +576,16 @@ export class MusicEngine {
     const p = stepPlan(this.seed, k);
     const strong = k % 4 === 0 ? 1 : k % 2 === 0 ? 0.7 : 0.45;
     const deg = this.melodyAt(k);
-    if (p.trigger < density * (0.45 + energy) * strong) {
+    if (!this.textureOnly && p.trigger < density * (0.45 + energy) * strong) {
       let midi = this.scaleNote(deg) + 12;
       if (brightness > 0.55 && p.octave < 0.25) midi += 12;
       // Under tension, sometimes reach for a note outside the scale.
       if (p.color < tension * 0.25) midi += p.colorPick < 0.5 ? 1 : 6;
       this.pluck(midiToHz(midi), t, pluckWave, 0.11 + 0.05 * p.level, 1.4 + 2.6 * p.decay, p.pan * 1.4 - 0.7);
     }
-    if (p.blip < pulse * 0.18) {
-      const midi = this.scaleNote(14 + Math.floor(p.blipNote * 5)) + 12;
+    if (p.blip < pulse * (this.textureOnly ? 0.08 : 0.18)) {
+      // Over recorded music, blips sit on a neutral high C rather than a scale note.
+      const midi = this.textureOnly ? 96 : this.scaleNote(14 + Math.floor(p.blipNote * 5)) + 12;
       this.blip(midiToHz(midi), t);
       if (p.blipDouble < 0.4) this.blip(midiToHz(midi), t + 0.12);
     }
