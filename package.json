@@ -1,0 +1,12 @@
+{
+  "name": "space-music",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A radio for the solar system: live views of space with music generated from live space data.",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node --test test/*.test.mjs",
+    "smoke": "node test/smoke.mjs"
+  }
+}

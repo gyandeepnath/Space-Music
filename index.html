@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#05070d" />
+    <title>Space Music</title>
+    <meta
+      name="description"
+      content="A radio for the solar system: live views of space, with music generated from live space data."
+    />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <canvas id="stars" aria-hidden="true"></canvas>
+
+    <main id="viewport" aria-label="Live view">
+      <section id="view-slides" class="view" hidden>
+        <img class="slide" alt="" decoding="async" />
+        <img class="slide" alt="" decoding="async" />
+        <p class="caption"></p>
+      </section>
+
+      <section id="view-iss" class="view" hidden data-main="camera">
+        <div class="iss-camera">
+          <iframe
+            title="ISS live camera"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+          <p class="iss-shadow" hidden></p>
+        </div>
+        <canvas class="iss-map" aria-label="Map of the ISS position and ground track"></canvas>
+        <button class="iss-swap chip" type="button" title="Swap camera and map">⇄ <span>Map</span></button>
+      </section>
+
+      <section id="view-launch" class="view" hidden>
+        <div class="launch-bg" data-launch="bg"></div>
+        <div class="launch-card">
+          <p class="eyebrow">Next launch</p>
+          <h2 data-launch="mission"></h2>
+          <p class="launch-rocket" data-launch="rocket"></p>
+          <p class="launch-clock" data-launch="clock"></p>
+          <p class="launch-meta" data-launch="meta"></p>
+          <ol class="launch-later" data-launch="later"></ol>
+        </div>
+      </section>
+
+      <div id="nosignal" hidden>
+        <p class="ns-title">No signal</p>
+        <p class="ns-detail"></p>
+      </div>
+    </main>
+
+    <aside id="telemetry" aria-label="Live telemetry">
+      <p class="eyebrow" id="tele-title"></p>
+      <dl id="tele-rows"></dl>
+      <p id="tele-status"></p>
+      <p id="tele-music"></p>
+    </aside>
+
+    <p id="subtitle" aria-live="polite" hidden></p>
+
+    <footer id="radio">
+      <div class="row row-main">
+        <button id="power" class="power" type="button" aria-pressed="false" title="Power (Space)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M6.3 6.3a8 8 0 1 0 11.4 0" /></svg>
+          <span class="sr">Power</span>
+        </button>
+        <div class="lcd" id="lcd">
+          <div class="lcd-top">
+            <span class="lcd-freq" id="lcd-freq"></span>
+            <span class="lcd-unit" id="lcd-unit"></span>
+            <span class="lcd-name" id="lcd-name"></span>
+            <span class="lcd-src" id="lcd-src"></span>
+          </div>
+          <div class="lcd-rds" id="lcd-rds" aria-live="off"></div>
+        </div>
+        <div class="vu" id="vu" aria-hidden="true"></div>
+        <div class="presets" id="presets" role="group" aria-label="Station presets"></div>
+      </div>
+
+      <div class="row row-tune">
+        <button class="chip step" id="prev" type="button" title="Previous station (←)" aria-label="Previous station">◀</button>
+        <div class="dial" id="dial" role="slider" tabindex="0" aria-label="Tuning dial" aria-valuemin="1">
+          <div class="dial-scale" id="dial-scale"></div>
+          <div class="dial-needle" id="needle"></div>
+        </div>
+        <button class="chip step" id="next" type="button" title="Next station (→)" aria-label="Next station">▶</button>
+        <div class="switches">
+          <div class="seg" role="group" aria-label="Music source">
+            <button type="button" data-source="gen" title="Music generated live from the station's data (M)">Generative</button>
+            <button type="button" data-source="fm" title="SomaFM's space channels (M)">SomaFM</button>
+          </div>
+          <button class="chip" id="dj-toggle" type="button" aria-pressed="true" title="Space DJ announcements (D)">DJ</button>
+          <label class="vol" title="Volume">
+            <span class="sr">Volume</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16.5 8.5a5 5 0 0 1 0 7" /></svg>
+            <input id="volume" type="range" min="0" max="1" step="0.01" />
+          </label>
+          <button class="chip" id="window-btn" type="button" title="Window mode: full screen, lean back (W)">Window</button>
+          <button class="chip" id="car-btn" type="button" title="Car mode: big buttons, audio first (C)">Car</button>
+          <button class="chip" id="settings-btn" type="button" title="Settings and credits" aria-label="Settings">⚙</button>
+        </div>
+      </div>
+    </footer>
+
+    <dialog id="settings">
+      <form method="dialog">
+        <h2>Settings</h2>
+        <label>
+          NASA API key
+          <input name="nasaKey" autocomplete="off" spellcheck="false" placeholder="DEMO_KEY" />
+          <small>Free and instant at <a href="https://api.nasa.gov" target="_blank" rel="noopener">api.nasa.gov</a>. The shared DEMO_KEY allows about 30 requests an hour.</small>
+        </label>
+        <label>
+          ISS camera stream
+          <input name="issVideo" autocomplete="off" spellcheck="false" placeholder="NASA’s current YouTube live stream" />
+          <small>Paste a YouTube video ID or link to use a specific ISS stream. Leave empty for NASA’s channel.</small>
+        </label>
+        <div class="two">
+          <label>
+            DJ voice
+            <select name="voice"><option value="">Automatic</option></select>
+          </label>
+          <label>
+            DJ talks every
+            <select name="djEvery">
+              <option value="3">3 minutes</option>
+              <option value="6">6 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="20">20 minutes</option>
+            </select>
+          </label>
+        </div>
+        <details>
+          <summary>Keyboard</summary>
+          <p class="keys"><kbd>Space</kbd> power · <kbd>1</kbd>–<kbd>6</kbd> presets · <kbd>←</kbd><kbd>→</kbd> tune · <kbd>M</kbd> music source · <kbd>D</kbd> DJ · <kbd>W</kbd> window · <kbd>C</kbd> car</p>
+        </details>
+        <details>
+          <summary>Credits and data sources</summary>
+          <ul class="credits">
+            <li>ISS position: <a href="https://wheretheiss.at" target="_blank" rel="noopener">wheretheiss.at</a> · camera: NASA live stream on YouTube</li>
+            <li>Earth: NASA EPIC on NOAA’s DSCOVR</li>
+            <li>Sun: NASA Solar Dynamics Observatory · space weather: NOAA SWPC</li>
+            <li>Mars: Perseverance raw images, NASA/JPL-Caltech</li>
+            <li>Deep Field: NASA Astronomy Picture of the Day (image credits as shown)</li>
+            <li>Launches: <a href="https://thespacedevs.com" target="_blank" rel="noopener">The Space Devs</a> Launch Library 2</li>
+            <li>Radio: <a href="https://somafm.com" target="_blank" rel="noopener">SomaFM</a>, listener-supported, commercial-free</li>
+            <li>Map: Natural Earth (public domain)</li>
+          </ul>
+        </details>
+        <menu>
+          <button type="button" id="settings-cancel" class="chip">Cancel</button>
+          <button value="save" class="chip primary">Save</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <audio id="engine-out" playsinline></audio>
+    <audio id="stream-out" playsinline></audio>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
