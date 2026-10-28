@@ -8,16 +8,16 @@
   "shape": {
    "name": "iss",
    "id": 25544,
-   "latitude": -18.389447791525,
-   "longitude": -140.58620148866,
-   "altitude": 426.46627494286,
-   "velocity": 27556.545241639,
+   "latitude": -26.72860779957,
+   "longitude": -133.13991698408,
+   "altitude": 428.45784113009,
+   "velocity": 27553.316670396,
    "visibility": "daylight",
-   "footprint": 4540.2157398922,
-   "timestamp": 1793216968,
-   "daynum": 2461342.3260185,
-   "solar_lat": -13.321776114401,
-   "solar_lon": 238.57082914868,
+   "footprint": 4550.2452639594,
+   "timestamp": 1793217142,
+   "daynum": 2461342.3280324,
+   "solar_lat": -13.322446045372,
+   "solar_lon": 237.84579235906,
    "units": "kilometers"
   }
  },
@@ -150,10 +150,10 @@
   "shape": [
    "len=358",
    {
-    "time_tag": "2026-10-28T19:45:00",
+    "time_tag": "2026-10-28T19:47:00",
     "kp_index": 1,
-    "estimated_kp": 0.67,
-    "kp": "1M"
+    "estimated_kp": 1.33,
+    "kp": "1P"
    }
   ]
  },
